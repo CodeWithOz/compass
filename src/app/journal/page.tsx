@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { getJournalEntries } from '@/actions/journal';
 import { getResolutions } from '@/actions/resolutions';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { JournalEntryForm } from '@/components/features/JournalEntryForm';
+import { JournalFormWrapper } from './JournalFormWrapper';
 
 /**
  * Journal Page
@@ -38,13 +38,7 @@ export default async function JournalPage() {
             <CardTitle>New Entry</CardTitle>
           </CardHeader>
           <CardContent>
-            <JournalEntryForm
-              linkedResolutionIds={resolutions.map((r) => r.id)}
-              onSuccess={() => {
-                // Refresh page to show new entry
-                window.location.reload();
-              }}
-            />
+            <JournalFormWrapper linkedResolutionIds={resolutions.map((r) => r.id)} />
           </CardContent>
         </Card>
       </div>

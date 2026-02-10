@@ -7,6 +7,7 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 // Create connection pool and adapter for Prisma 7
+// Use this with postgres:// URLs (direct TCP connection)
 const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 const adapter = new PrismaPg(pool)
 

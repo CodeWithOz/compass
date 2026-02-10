@@ -12,11 +12,37 @@ on:
 
 jobs:
   claude:
+    # Security: Only allow users with write access (OWNER, MEMBER, COLLABORATOR) to trigger this workflow.
+    # This prevents external users from abusing the CLAUDE_CODE_OAUTH_TOKEN on public repos.
+    # Note: 'assigned' events skip author_association check since only users with write/triage
+    # access can assign issues - the action itself implies authorization.
     if: |
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
-      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+      (
+        github.event_name == 'issue_comment' &&
+        contains(github.event.comment.body, '@claude') &&
+        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+      ) ||
+      (
+        github.event_name == 'pull_request_review_comment' &&
+        contains(github.event.comment.body, '@claude') &&
+        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+      ) ||
+      (
+        github.event_name == 'pull_request_review' &&
+        contains(github.event.review.body, '@claude') &&
+        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.review.author_association)
+      ) ||
+      (
+        github.event_name == 'issues' &&
+        github.event.action == 'opened' &&
+        (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')) &&
+        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.issue.author_association)
+      ) ||
+      (
+        github.event_name == 'issues' &&
+        github.event.action == 'assigned' &&
+        (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude'))
+      )
     runs-on: ubuntu-latest
     permissions:
       contents: read

@@ -12,11 +12,42 @@ on:
 
 jobs:
   claude:
+    # Security: Only allow users with write access (OWNER, MEMBER, COLLABORATOR) to trigger this workflow.
+    # This prevents external users from abusing the CLAUDE_CODE_OAUTH_TOKEN on public repos.
+    #
+    # IMPORTANT: The 'assigned' event intentionally does NOT check issue.author_association.
+    # Rationale: Only users with write/triage access can assign issues (GitHub enforces this).
+    # When a maintainer assigns an issue containing @claude, the assignment action itself is the
+    # authorization signal. Checking the issue author would incorrectly block maintainers from
+    # assigning community-opened issues to get Claude's help - this is a known anti-pattern.
+    # See security guide "Pitfall 3: Blocking Legitimate Maintainer Actions".
     if: |
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
-      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+      (
+        github.event_name == 'issue_comment' &&
+        contains(github.event.comment.body, '@claude') &&
+        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+      ) ||
+      (
+        github.event_name == 'pull_request_review_comment' &&
+        contains(github.event.comment.body, '@claude') &&
+        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+      ) ||
+      (
+        github.event_name == 'pull_request_review' &&
+        contains(github.event.review.body, '@claude') &&
+        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.review.author_association)
+      ) ||
+      (
+        github.event_name == 'issues' &&
+        github.event.action == 'opened' &&
+        (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')) &&
+        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.issue.author_association)
+      ) ||
+      (
+        github.event_name == 'issues' &&
+        github.event.action == 'assigned' &&
+        (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude'))
+      )
     runs-on: ubuntu-latest
     permissions:
       contents: read

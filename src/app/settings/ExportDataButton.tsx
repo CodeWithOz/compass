@@ -1,14 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/Button';
 
-/**
- * Export Data Button Component
- *
- * Downloads all user data as JSON
- * Exit is a feature - user owns their data
- */
 export function ExportDataButton() {
   const [isExporting, setIsExporting] = useState(false);
 
@@ -16,7 +9,6 @@ export function ExportDataButton() {
     setIsExporting(true);
 
     try {
-      // Call export API endpoint
       const response = await fetch('/api/export');
 
       if (!response.ok) {
@@ -25,7 +17,6 @@ export function ExportDataButton() {
 
       const data = await response.json();
 
-      // Create download
       const blob = new Blob([JSON.stringify(data, null, 2)], {
         type: 'application/json',
       });
@@ -49,9 +40,10 @@ export function ExportDataButton() {
     <button
       onClick={handleExport}
       disabled={isExporting}
-      className="px-4 py-2 text-sm font-medium text-neutral-900 bg-white border border-neutral-300 rounded-md hover:border-neutral-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
     >
-      {isExporting ? 'Exporting...' : 'Export all data'}
+      <span className="material-icons text-sm">download</span>
+      {isExporting ? 'Exporting...' : 'Export as CSV'}
     </button>
   );
 }

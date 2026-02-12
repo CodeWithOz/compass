@@ -1,110 +1,113 @@
 import React from 'react';
+import Link from 'next/link';
 import { getMomentumTrends } from '@/actions/analytics';
-import { Card, CardContent } from '@/components/ui/Card';
-import { WeeklySummaryCard } from '@/components/features/WeeklySummaryCard';
 import { startOfWeek } from 'date-fns';
 
-/**
- * Weekly Review Page
- *
- * - Weekly summaries for all resolutions
- * - Engagement scores and momentum trends
- * - Suggested adjustments from AI
- */
 export default async function WeeklyReviewPage() {
-  const trendsResult = await getMomentumTrends();
-  const summaries = trendsResult.data || [];
+  const trendsResult = await getMomentumTrends().catch(() => ({ success: false, data: [] }));
+  const summaries = (trendsResult as any).data || [];
 
-  const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 }); // Monday
+  const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Weekly Review</h1>
-        <p className="text-gray-600">
-          What has been happening? Patterns, rhythms, and signals from your resolutions.
-        </p>
-        <p className="text-sm text-gray-500 mt-1">
-          Week of {currentWeekStart.toLocaleDateString()}
-        </p>
-      </div>
-
-      {/* Summaries */}
-      {summaries.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-gray-500 mb-3">No weekly summaries available yet</p>
-            <p className="text-sm text-gray-400">
-              Weekly summaries are generated automatically based on your journal entries and
-              activity patterns
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-6">
-          {/* Group by momentum trend */}
-          {(['GROWING', 'STABLE', 'DECLINING'] as const).map((trend) => {
-            const summariesWithTrend = summaries.filter((s) => s.momentumTrend === trend);
-            if (summariesWithTrend.length === 0) return null;
-
-            const trendConfig = {
-              GROWING: {
-                title: '📈 Growing Momentum',
-                color: 'text-green-700',
-              },
-              STABLE: {
-                title: '➡️ Stable Momentum',
-                color: 'text-blue-700',
-              },
-              DECLINING: {
-                title: '📉 Shifting Patterns',
-                color: 'text-amber-700',
-              },
-            };
-
-            return (
-              <div key={trend}>
-                <h2 className={`text-xl font-semibold mb-4 ${trendConfig[trend].color}`}>
-                  {trendConfig[trend].title}{' '}
-                  <span className="text-sm font-normal text-gray-500">
-                    ({summariesWithTrend.length})
-                  </span>
-                </h2>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {summariesWithTrend.map((summary) => (
-                    <WeeklySummaryCard key={summary.id} summary={summary} />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+    <>
+      {/* Navigation */}
+      <nav className="border-b border-slate-200 bg-white sticky top-0 z-10">
+        <div className="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+              <span className="material-icons text-white text-lg">explore</span>
+            </div>
+            <span className="text-base font-bold tracking-wide text-slate-800">
+              Compass
+            </span>
+          </Link>
+          <div className="flex items-center gap-6">
+            <Link href="/journal" className="text-sm text-slate-500 hover:text-slate-700 transition-colors">
+              History
+            </Link>
+            <Link href="/settings" className="text-sm text-slate-500 hover:text-slate-700 transition-colors">
+              Settings
+            </Link>
+          </div>
         </div>
-      )}
+      </nav>
 
-      {/* Helper text */}
-      <div className="mt-12 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-sm text-blue-900 font-medium mb-2">
-          📊 Understanding Your Weekly Review
-        </p>
-        <ul className="text-sm text-blue-800 space-y-1">
-          <li>
-            <strong>Growing Momentum:</strong> Patterns suggest increasing engagement and presence
-          </li>
-          <li>
-            <strong>Stable Momentum:</strong> Consistent rhythm being maintained
-          </li>
-          <li>
-            <strong>Shifting Patterns:</strong> Changes detected - not failure, just signals for
-            reflection
-          </li>
-          <li className="mt-2 italic">
-            Remember: This is descriptive, not judgmental. Use it to understand what&apos;s
-            happening, not to judge yourself.
-          </li>
-        </ul>
-      </div>
-    </div>
+      <main className="max-w-3xl mx-auto px-6 py-10">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <span className="text-xs font-medium text-primary uppercase tracking-wider bg-primary/10 px-3 py-1 rounded-full">
+            Weekly Review
+          </span>
+          <h1 className="text-3xl font-light text-slate-800 mt-4 mb-2">
+            Week of {currentWeekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+          </h1>
+          <p className="text-sm text-slate-400 italic">
+            What has been happening? Patterns, rhythms, and signals.
+          </p>
+        </div>
+
+        {/* Summaries */}
+        {summaries.length === 0 ? (
+          <div className="bg-white border border-slate-200/80 rounded-xl p-12 text-center">
+            <p className="text-slate-500 mb-2">No weekly summaries available yet</p>
+            <p className="text-sm text-slate-400">
+              Weekly summaries are generated automatically based on your journal entries and activity patterns.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {(['GROWING', 'STABLE', 'DECLINING'] as const).map((trend) => {
+              const summariesWithTrend = summaries.filter((s: any) => s.momentumTrend === trend);
+              if (summariesWithTrend.length === 0) return null;
+
+              const trendConfig = {
+                GROWING: { title: 'Growing Momentum', icon: 'trending_up', color: 'text-green-600' },
+                STABLE: { title: 'Stable Momentum', icon: 'trending_flat', color: 'text-primary' },
+                DECLINING: { title: 'Shifting Patterns', icon: 'trending_down', color: 'text-amber-600' },
+              };
+
+              return (
+                <div key={trend}>
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className={`material-icons ${trendConfig[trend].color}`}>
+                      {trendConfig[trend].icon}
+                    </span>
+                    <h2 className={`text-lg font-semibold ${trendConfig[trend].color}`}>
+                      {trendConfig[trend].title}
+                    </h2>
+                    <span className="text-xs text-slate-400">({summariesWithTrend.length})</span>
+                  </div>
+                  <div className="space-y-3">
+                    {summariesWithTrend.map((summary: any) => (
+                      <div
+                        key={summary.id}
+                        className="bg-white border border-slate-200/80 rounded-xl p-5"
+                      >
+                        <h3 className="text-sm font-semibold text-slate-800 mb-2">
+                          {summary.resolutionName || 'Resolution'}
+                        </h3>
+                        {summary.narrativeSummary && (
+                          <p className="text-sm text-slate-600 leading-relaxed">
+                            {summary.narrativeSummary}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Footer */}
+        <footer className="mt-16 text-center py-8 border-t border-slate-200/60">
+          <p className="text-xs text-slate-400 italic">
+            This is descriptive, not judgmental. Use it to understand what&apos;s happening, not to judge yourself.
+          </p>
+        </footer>
+      </main>
+    </>
   );
 }

@@ -4,20 +4,9 @@ import { notFound } from 'next/navigation';
 import { getResolution } from '@/actions/resolutions';
 import { getDailyActivity } from '@/actions/analytics';
 import { getJournalEntries } from '@/actions/journal';
-import { HeatmapChart } from '@/components/features/HeatmapChart';
 import { ArchiveResolutionButton } from './ArchiveResolutionButton';
 import { subDays } from 'date-fns';
 
-/**
- * Resolution Detail
- *
- * Primary question: What's happening with this resolution over time?
- *
- * Sections:
- * 1. Activity timeline / mini heatmap
- * 2. Recent entries (insights)
- * 3. Exit / Pause controls
- */
 export default async function ResolutionDetailPage({
   params,
 }: {
@@ -32,144 +21,209 @@ export default async function ResolutionDetailPage({
   const resolution = resolutionResult.data;
 
   const endDate = new Date();
-  const startDate = subDays(endDate, 365);
+  const startDate = subDays(endDate, 180);
 
   const [activityResult, entriesResult] = await Promise.all([
-    getDailyActivity(startDate, endDate, params.id),
-    getJournalEntries({
-      resolutionId: params.id,
-      limit: 10,
-    }),
+    getDailyActivity(startDate, endDate, params.id).catch(() => ({ success: false, data: [] })),
+    getJournalEntries({ resolutionId: params.id, limit: 10 }).catch(() => ({ success: false, data: [] })),
   ]);
 
-  const activities = activityResult.data || [];
-  const recentEntries = entriesResult.data || [];
+  const activities = (activityResult as any).data || [];
+  const recentEntries = (entriesResult as any).data || [];
 
   return (
-    <div className="space-y-12">
-      {/* Header */}
-      <div>
+    <main className="max-w-3xl mx-auto px-6 py-10">
+      {/* Top Navigation */}
+      <div className="flex items-center justify-between mb-10">
         <Link
           href="/resolutions"
-          className="text-sm text-neutral-500 hover:text-neutral-900 mb-4 inline-block"
+          className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 transition-colors"
         >
-          ← Resolutions
+          <span className="material-icons text-lg">arrow_back</span>
+          Overview
         </Link>
-        <h1 className="text-2xl font-medium text-neutral-900 mb-2">{resolution.name}</h1>
-        <div className="flex items-center gap-2 text-sm text-neutral-500">
-          <span>
-            {resolution.type === 'HABIT_BUNDLE' && 'Habit bundle'}
-            {resolution.type === 'MEASURABLE_OUTCOME' && 'Measurable outcome'}
-            {resolution.type === 'EXPLORATORY_TRACK' && 'Exploratory track'}
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-primary" />
+          <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+            Active Reflection
           </span>
-          {resolution.currentPhase && (
-            <>
-              <span>•</span>
-              <span>{resolution.currentPhase.name}</span>
-            </>
-          )}
         </div>
+      </div>
 
-        {/* Purpose & Details */}
+      {/* Title & Purpose */}
+      <div className="mb-10">
+        <h1 className="text-3xl font-bold text-slate-900 mb-3">{resolution.name}</h1>
         {resolution.purpose && (
-          <div className="mt-4 text-sm text-neutral-600">
-            <p className="font-medium text-neutral-700 mb-1">Purpose</p>
-            <p>{resolution.purpose}</p>
+          <p className="text-lg text-slate-500 leading-relaxed">{resolution.purpose}</p>
+        )}
+      </div>
+
+      {/* Constraint Cards */}
+      <div className="grid grid-cols-3 gap-4 mb-12">
+        {resolution.constraints && (
+          <div className="bg-white border border-slate-200/80 rounded-xl p-4">
+            <p className="text-[10px] font-medium text-primary/70 uppercase tracking-wider mb-1.5">
+              Constraints
+            </p>
+            <p className="text-sm font-medium text-slate-700">{resolution.constraints}</p>
           </div>
         )}
-
+        {resolution.currentPhase && (
+          <div className="bg-white border border-slate-200/80 rounded-xl p-4">
+            <p className="text-[10px] font-medium text-primary/70 uppercase tracking-wider mb-1.5">
+              Current Phase
+            </p>
+            <p className="text-sm font-medium text-slate-700">{resolution.currentPhase.name}</p>
+          </div>
+        )}
+        <div className="bg-white border border-slate-200/80 rounded-xl p-4">
+          <p className="text-[10px] font-medium text-primary/70 uppercase tracking-wider mb-1.5">
+            Type
+          </p>
+          <p className="text-sm font-medium text-slate-700">
+            {resolution.type === 'HABIT_BUNDLE' && 'Habit Bundle'}
+            {resolution.type === 'MEASURABLE_OUTCOME' && 'Measurable Outcome'}
+            {resolution.type === 'EXPLORATORY_TRACK' && 'Exploratory Track'}
+          </p>
+        </div>
         {resolution.type === 'MEASURABLE_OUTCOME' && resolution.targetDate && (
-          <div className="mt-4 text-sm text-neutral-600">
-            <p className="font-medium text-neutral-700 mb-1">Target date</p>
-            <p>
+          <div className="bg-white border border-slate-200/80 rounded-xl p-4">
+            <p className="text-[10px] font-medium text-primary/70 uppercase tracking-wider mb-1.5">
+              Target Date
+            </p>
+            <p className="text-sm font-medium text-slate-700">
               {new Date(resolution.targetDate).toLocaleDateString('en-US', {
-                year: 'numeric',
                 month: 'long',
                 day: 'numeric',
+                year: 'numeric',
               })}
             </p>
           </div>
         )}
-
-        {resolution.type === 'EXPLORATORY_TRACK' && resolution.exitCriteria && (
-          <div className="mt-4 text-sm text-neutral-600">
-            <p className="font-medium text-neutral-700 mb-1">Exit criteria</p>
-            <p>{resolution.exitCriteria}</p>
-          </div>
-        )}
-
-        {resolution.constraints && (
-          <div className="mt-4 text-sm text-neutral-600">
-            <p className="font-medium text-neutral-700 mb-1">Constraints</p>
-            <p>{resolution.constraints}</p>
-          </div>
-        )}
       </div>
 
-      {/* Section 1: Activity Timeline */}
-      <section>
-        <h2 className="text-sm font-medium text-neutral-600 mb-4">Activity pattern</h2>
-        <div className="border border-neutral-200 rounded-md bg-white p-6">
-          <HeatmapChart
-            data={activities.map((a) => ({
-              date: new Date(a.date),
-              level: a.activityLevel,
-            }))}
-            startDate={startDate}
-            endDate={endDate}
-          />
+      {/* Engagement Momentum Heatmap */}
+      <section className="mb-12">
+        <div className="flex justify-between items-end mb-3">
+          <h2 className="text-lg font-bold text-slate-900">Engagement Momentum</h2>
+          <span className="text-xs text-slate-400">Past 6 Months</span>
+        </div>
+        <div className="bg-white p-5 rounded-xl border border-slate-200/80">
+          <div className="heatmap-grid">
+            {Array.from({ length: 60 }).map((_, i) => {
+              const date = subDays(endDate, 59 - i);
+              const activity = activities.find(
+                (a: any) => new Date(a.date).toDateString() === date.toDateString()
+              );
+
+              let opacity = 0.08;
+              if (activity) {
+                if (activity.activityLevel === 'FULL') opacity = 1;
+                else if (activity.activityLevel === 'PARTIAL') opacity = 0.4;
+                else opacity = 0.12;
+              }
+
+              return (
+                <div
+                  key={i}
+                  className="aspect-square rounded-sm"
+                  style={{ backgroundColor: `rgba(19, 127, 236, ${opacity})` }}
+                />
+              );
+            })}
+          </div>
+          <div className="flex items-center justify-between mt-3 text-[10px] text-slate-400 uppercase tracking-wider">
+            <span>Less Active</span>
+            <div className="flex gap-0.5">
+              <div className="w-2.5 h-2.5 rounded-sm bg-primary/10" />
+              <div className="w-2.5 h-2.5 rounded-sm bg-primary/30" />
+              <div className="w-2.5 h-2.5 rounded-sm bg-primary/60" />
+              <div className="w-2.5 h-2.5 rounded-sm bg-primary" />
+            </div>
+            <span>Deep Work</span>
+          </div>
         </div>
       </section>
 
-      {/* Section 2: Recent Entries */}
+      {/* Observed Patterns */}
       {recentEntries.length > 0 && (
-        <section>
-          <h2 className="text-sm font-medium text-neutral-600 mb-4">Recent entries</h2>
+        <section className="mb-12">
+          <div className="flex items-center gap-2 mb-5">
+            <span className="material-icons text-primary text-xl">insights</span>
+            <h2 className="text-lg font-bold text-slate-900">Observed Patterns</h2>
+          </div>
           <div className="space-y-3">
-            {recentEntries.map((entry) => (
+            {recentEntries.slice(0, 3).map((entry: any) => (
               <Link
                 key={entry.id}
                 href={`/journal/${entry.id}`}
-                className="block border border-neutral-200 rounded-md bg-white p-4 hover:border-neutral-300 transition-colors"
+                className="flex items-start gap-4 bg-white border border-slate-200/80 rounded-xl p-5 hover:border-primary/30 transition-colors"
               >
-                <div className="flex items-baseline justify-between mb-2">
-                  <p className="text-xs text-neutral-500">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <span className="material-icons text-primary text-lg">bolt</span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-700 mb-1">
                     {new Date(entry.timestamp).toLocaleDateString('en-US', {
                       month: 'short',
                       day: 'numeric',
                     })}
                   </p>
+                  <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">
+                    {entry.rawText}
+                  </p>
                 </div>
-                <p className="text-sm text-neutral-700 line-clamp-3">{entry.rawText}</p>
               </Link>
             ))}
           </div>
         </section>
       )}
 
-      {/* Section 3: Exit / Pause Controls */}
-      {resolution.status === 'ACTIVE' && (
-        <section className="border-t border-neutral-200 pt-6">
-          <div className="flex justify-between items-center">
-            <div className="text-sm text-neutral-500">
-              {resolution.type === 'EXPLORATORY_TRACK'
-                ? 'Exit is a feature, not a failure'
-                : 'Archive when no longer relevant'}
-            </div>
-            <ArchiveResolutionButton
-              resolutionId={params.id}
-              label={resolution.type === 'EXPLORATORY_TRACK' ? 'Exit' : 'Archive'}
-            />
-          </div>
+      {/* Exit reflection if archived */}
+      {resolution.status === 'ARCHIVED' && resolution.exitNote && (
+        <section className="mb-12 bg-amber-50/50 border border-amber-200/40 rounded-xl p-6">
+          <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider bg-amber-100 px-2 py-0.5 rounded mb-3 inline-block">
+            Exit Reflection
+          </span>
+          <p className="text-base text-slate-600 italic leading-relaxed">
+            &quot;{resolution.exitNote}&quot;
+          </p>
         </section>
       )}
 
-      {resolution.status === 'ARCHIVED' && resolution.exitNote && (
-        <section className="border border-neutral-200 rounded-md bg-neutral-50 p-4">
-          <p className="text-sm font-medium text-neutral-700 mb-1">Exit reflection</p>
-          <p className="text-sm text-neutral-600 italic">{resolution.exitNote}</p>
-        </section>
-      )}
-    </div>
+      {/* Footer Controls */}
+      <footer className="border-t border-slate-200/60 pt-6 mt-12 flex items-center justify-between">
+        {resolution.status === 'ACTIVE' && (
+          <>
+            <ArchiveResolutionButton
+              resolutionId={params.id}
+              label={resolution.type === 'EXPLORATORY_TRACK' ? 'Exit' : 'Archive Resolution'}
+            />
+            <div className="flex items-center gap-3">
+              <Link
+                href={`/resolutions/${params.id}/edit`}
+                className="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-300 rounded-lg hover:border-slate-400 transition-colors"
+              >
+                Edit Detail
+              </Link>
+              <Link
+                href="/resolutions"
+                className="bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors"
+              >
+                Exit View
+              </Link>
+            </div>
+          </>
+        )}
+        {resolution.status === 'ARCHIVED' && (
+          <Link
+            href="/resolutions"
+            className="bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors"
+          >
+            Back to Resolutions
+          </Link>
+        )}
+      </footer>
+    </main>
   );
 }

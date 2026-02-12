@@ -1,6 +1,11 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #137fec;
+  --color-background-light: #f6f7f8;
+  --color-background-dark: #101922;
+  --font-display: "Inter", var(--font-geist-sans), sans-serif;
+}
 
 :root {
   --background: #f6f7f8;
@@ -22,14 +27,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-@layer utilities {
-  .heatmap-grid {
-    display: grid;
-    grid-template-columns: repeat(20, minmax(0, 1fr));
-    gap: 4px;
-  }
-
-  .heatmap-cell {
-    aspect-ratio: 1/1;
-  }
+@utility heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(20, minmax(0, 1fr));
+  gap: 4px;
 }

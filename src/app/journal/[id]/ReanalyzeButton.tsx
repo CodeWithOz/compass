@@ -3,35 +3,23 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { triggerReanalysis } from '@/actions/journal';
-import { Button } from '@/components/ui/Button';
-import { ProviderSelector } from '@/components/features/ProviderSelector';
 import type { AIProvider } from '@/lib/ai/providers';
 
 export interface ReanalyzeButtonProps {
   entryId: string;
 }
 
-/**
- * Reanalyze Button Component
- *
- * Allow re-analysis of journal entry with different AI provider
- * Useful for comparing interpretations
- */
 export function ReanalyzeButton({ entryId }: ReanalyzeButtonProps) {
   const router = useRouter();
-  const [isOpen, setIsOpen] = useState(false);
-  const [provider, setProvider] = useState<AIProvider>('claude');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const handleReanalyze = async () => {
     setIsAnalyzing(true);
 
     try {
-      const result = await triggerReanalysis(entryId, provider);
+      const result = await triggerReanalysis(entryId, 'claude' as AIProvider);
 
       if (result.success) {
-        setIsOpen(false);
-        // Refresh page to show new interpretation (after a delay for analysis to complete)
         setTimeout(() => {
           router.refresh();
         }, 2000);
@@ -46,29 +34,13 @@ export function ReanalyzeButton({ entryId }: ReanalyzeButtonProps) {
     }
   };
 
-  if (!isOpen) {
-    return (
-      <Button variant="secondary" onClick={() => setIsOpen(true)}>
-        🔄 Reanalyze
-      </Button>
-    );
-  }
-
   return (
-    <div className="flex items-center gap-2">
-      <div className="w-48">
-        <ProviderSelector
-          value={provider}
-          onChange={setProvider}
-          disabled={isAnalyzing}
-        />
-      </div>
-      <Button onClick={handleReanalyze} isLoading={isAnalyzing} size="sm">
-        Analyze
-      </Button>
-      <Button variant="ghost" onClick={() => setIsOpen(false)} size="sm">
-        Cancel
-      </Button>
-    </div>
+    <button
+      onClick={handleReanalyze}
+      disabled={isAnalyzing}
+      className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors disabled:opacity-50"
+    >
+      <span className="material-icons text-slate-500 text-lg">person</span>
+    </button>
   );
 }

@@ -44,48 +44,25 @@ export function HeatmapChart({
   const start = startDate || new Date(end.getTime() - 365 * 24 * 60 * 60 * 1000);
 
   return (
-    <div className="space-y-2">
-      {resolutionName && (
-        <h3 className="text-sm font-medium text-gray-700">{resolutionName}</h3>
-      )}
-
-      <div className="overflow-x-auto">
-        <HeatMap
-          value={heatmapValue}
-          startDate={start}
-          endDate={end}
-          width="100%"
-          style={{ color: '#374151' }}
-          panelColors={{
-            0: '#f3f4f6', // NONE - gray-100
-            1: '#dbeafe', // PARTIAL - blue-100
-            2: '#3b82f6', // FULL - blue-500
-          }}
-          legendCellSize={12}
-          rectSize={14}
-          space={4}
-          rectProps={{
-            rx: 2,
-          }}
-        />
-      </div>
-
-      <div className="flex items-center justify-end gap-4 text-xs text-gray-500">
-        <div className="flex items-center gap-2">
-          <span>Less</span>
-          <div className="flex gap-1">
-            <div className="w-3 h-3 bg-gray-100 border border-gray-300 rounded-sm" />
-            <div className="w-3 h-3 bg-blue-100 border border-gray-300 rounded-sm" />
-            <div className="w-3 h-3 bg-blue-500 border border-gray-300 rounded-sm" />
-          </div>
-          <span>More</span>
-        </div>
-      </div>
-
-      <p className="text-xs text-gray-500 italic">
-        This shows your engagement pattern over time. Presence and rhythm matter more than
-        perfection.
-      </p>
+    <div className="overflow-x-auto">
+      <HeatMap
+        value={heatmapValue}
+        startDate={start}
+        endDate={end}
+        width="100%"
+        style={{ color: '#737373' }}
+        panelColors={{
+          0: '#fafafa', // NONE - neutral-50
+          1: '#e5e5e5', // PARTIAL - neutral-200
+          2: '#737373', // FULL - neutral-500
+        }}
+        legendCellSize={0}
+        rectSize={12}
+        space={3}
+        rectProps={{
+          rx: 2,
+        }}
+      />
     </div>
   );
 }

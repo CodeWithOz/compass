@@ -3,19 +3,8 @@ import Link from 'next/link';
 import { getResolutions } from '@/actions/resolutions';
 import { getActiveReframes } from '@/actions/reframes';
 import { getHeatmapData } from '@/actions/analytics';
-import { HeatmapChart } from '@/components/features/HeatmapChart';
 import { subDays } from 'date-fns';
 
-/**
- * Dashboard / Home
- *
- * Primary question: What has been happening recently?
- *
- * Layout:
- * 1. Activity Heatmap (centerpiece)
- * 2. "Write an entry" CTA
- * 3. Strategic signals (recent reframes)
- */
 export default async function DashboardPage() {
   const endDate = new Date();
   const startDate = subDays(endDate, 365);
@@ -39,102 +28,145 @@ export default async function DashboardPage() {
     }))
   );
 
+  // Flatten activities for combined heatmap
+  const allActivities = heatmapData.flatMap((item) =>
+    item.activities.map((a) => ({
+      date: new Date(a.date),
+      level: a.level,
+    }))
+  );
+
   return (
-    <div className="space-y-12">
-      {/* Section 1: Activity Heatmap (centerpiece) */}
-      <section>
-        <h2 className="text-sm font-medium text-neutral-600 mb-4">Activity pattern</h2>
-        {heatmapData.length > 0 ? (
-          <div className="space-y-8">
-            {heatmapData.map((item) => (
-              <div key={item.resolution.id} className="space-y-3">
-                <div>
-                  <Link
-                    href={`/resolutions/${item.resolution.id}`}
-                    className="text-base font-medium text-neutral-900 hover:text-blue-600 transition-colors"
-                  >
-                    {item.resolution.name}
-                  </Link>
-                  <p className="text-sm text-neutral-500 mt-0.5">
-                    {item.resolution.type === 'HABIT_BUNDLE' && 'Habit bundle'}
-                    {item.resolution.type === 'MEASURABLE_OUTCOME' && 'Measurable outcome'}
-                    {item.resolution.type === 'EXPLORATORY_TRACK' && 'Exploratory track'}
-                    {item.currentPhase && ` • ${item.currentPhase.name}`}
-                  </p>
-                </div>
-                <HeatmapChart
-                  data={item.activities.map((a) => ({
-                    date: new Date(a.date),
-                    level: a.activityLevel,
-                  }))}
-                  startDate={startDate}
-                  endDate={endDate}
-                />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="border border-neutral-200 rounded-md bg-white p-12 text-center">
-            <p className="text-neutral-500 mb-4">No resolutions yet</p>
-            <Link
-              href="/resolutions"
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-            >
-              Create your first resolution
-            </Link>
-          </div>
-        )}
-      </section>
+    <>
+      {/* Header */}
+      <header className="max-w-2xl mx-auto pt-12 pb-16 px-6 flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-primary"></div>
+          <h1 className="text-sm font-medium tracking-widest uppercase text-slate-500 dark:text-slate-400">
+            Compass
+          </h1>
+        </div>
+        <nav className="flex gap-6">
+          <Link
+            href="/resolutions?status=ARCHIVED"
+            className="text-slate-400 hover:text-primary transition-colors"
+          >
+            <span className="material-icons text-[20px]">archive</span>
+          </Link>
+          <Link
+            href="/settings"
+            className="text-slate-400 hover:text-primary transition-colors"
+          >
+            <span className="material-icons text-[20px]">settings</span>
+          </Link>
+        </nav>
+      </header>
 
-      {/* Section 2: Write Entry CTA */}
-      <section>
-        <Link
-          href="/journal"
-          className="block border border-neutral-300 rounded-md bg-white p-6 hover:border-neutral-400 transition-colors text-center"
-        >
-          <p className="text-neutral-600">Write an entry</p>
-        </Link>
-      </section>
-
-      {/* Section 3: Strategic Signals */}
-      {allReframes.length > 0 && (
-        <section>
-          <h2 className="text-sm font-medium text-neutral-600 mb-4">Strategic signals</h2>
-          <div className="space-y-4">
-            {allReframes.slice(0, 3).map((reframe: any) => (
-              <div
-                key={reframe.id}
-                className="border border-neutral-200 rounded-md bg-white p-4"
-              >
-                <p className="text-sm font-medium text-neutral-900 mb-1">
-                  {reframe.type === 'MISALIGNMENT' && 'Pattern shift detected'}
-                  {reframe.type === 'STAGNATION' && 'Stagnation pattern'}
-                  {reframe.type === 'OVER_OPTIMIZATION' && 'Over-optimization detected'}
-                  {reframe.type === 'PHASE_MISMATCH' && 'Phase mismatch'}
-                  {reframe.type === 'EXIT_SIGNAL' && 'Exit signal'}
-                  {' in '}
-                  <Link
-                    href={`/resolutions/${reframe.resolutionId}`}
-                    className="text-blue-600 hover:text-blue-700"
-                  >
-                    "{reframe.resolutionName}"
-                  </Link>
-                </p>
-                {reframe.reason && (
-                  <p className="text-sm text-neutral-600 mt-1">
-                    → {reframe.reason}
-                  </p>
-                )}
-                {reframe.suggestion && (
-                  <p className="text-sm text-neutral-500 italic mt-2">
-                    {reframe.suggestion}
-                  </p>
-                )}
+      <main className="max-w-2xl mx-auto px-6 pb-24">
+        {/* Activity Heatmap Section */}
+        <section className="mb-16">
+          <div className="flex justify-between items-end mb-4">
+            <h2 className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+              Momentum
+            </h2>
+            <div className="flex items-center gap-2 text-[10px] text-slate-400">
+              <span>Quiet</span>
+              <div className="flex gap-1">
+                <div className="w-2 h-2 rounded-sm bg-primary/10"></div>
+                <div className="w-2 h-2 rounded-sm bg-primary/30"></div>
+                <div className="w-2 h-2 rounded-sm bg-primary/60"></div>
+                <div className="w-2 h-2 rounded-sm bg-primary"></div>
               </div>
-            ))}
+              <span>Active</span>
+            </div>
+          </div>
+          <div className="bg-white dark:bg-slate-900/50 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="heatmap-grid">
+              {/* Generate heatmap cells - showing last 80 days (4 rows x 20 cols) */}
+              {Array.from({ length: 80 }).map((_, i) => {
+                const date = subDays(endDate, 79 - i);
+                const activity = allActivities.find(
+                  (a) => a.date.toDateString() === date.toDateString()
+                );
+
+                let opacity = 10;
+                if (activity) {
+                  if (activity.level === 'FULL') opacity = 100;
+                  else if (activity.level === 'PARTIAL') opacity = 40;
+                  else opacity = 10;
+                }
+
+                return (
+                  <div
+                    key={i}
+                    className={`aspect-square rounded-sm bg-primary/${opacity}`}
+                    style={{ backgroundColor: `rgba(19, 127, 236, ${opacity / 100})` }}
+                  ></div>
+                );
+              })}
+            </div>
           </div>
         </section>
-      )}
-    </div>
+
+        {/* CTA Section */}
+        <section className="flex flex-col items-center mb-20">
+          <Link href="/journal">
+            <button className="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-xl font-medium shadow-lg shadow-primary/20 transition-all active:scale-95 flex items-center gap-3">
+              <span className="material-icons">edit</span>
+              Capture a reflection
+            </button>
+          </Link>
+          <p className="mt-4 text-sm text-slate-400 dark:text-slate-500 italic">
+            Be honest with yourself today.
+          </p>
+        </section>
+
+        {/* Strategic Signals Section */}
+        {allReframes.length > 0 && (
+          <section>
+            <h2 className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-6">
+              Recent Strategic Signals
+            </h2>
+            <div className="space-y-4">
+              {allReframes.slice(0, 3).map((reframe: any) => (
+                <div
+                  key={reframe.id}
+                  className="p-6 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-primary/30 dark:hover:border-primary/30 transition-colors"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="mt-1 w-1.5 h-1.5 rounded-full bg-primary/40"></div>
+                    <div>
+                      <p className="text-[15px] leading-relaxed text-slate-700 dark:text-slate-300">
+                        {reframe.reason || reframe.suggestion}
+                      </p>
+                      <span className="block mt-2 text-[11px] font-medium text-slate-400 dark:text-slate-500 uppercase">
+                        {reframe.resolutionName}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-10 text-center">
+              <Link
+                href="/resolutions"
+                className="text-sm font-medium text-primary/70 hover:text-primary transition-colors"
+              >
+                View all observations
+              </Link>
+            </div>
+          </section>
+        )}
+      </main>
+
+      {/* Subtle background decoration */}
+      <div className="fixed top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/0 via-primary/20 to-primary/0"></div>
+
+      <footer className="max-w-2xl mx-auto px-6 py-12 border-t border-slate-200 dark:border-slate-800 text-center">
+        <p className="text-xs text-slate-400 dark:text-slate-600 font-light">
+          Compass is a space for momentum, not metrics.
+        </p>
+      </footer>
+    </>
   );
 }

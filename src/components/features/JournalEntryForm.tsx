@@ -85,41 +85,34 @@ export function JournalEntryForm({
         <Textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="What's on your mind? Write freely, no structure needed. This is your space to think out loud..."
+          placeholder="What's been happening?"
           rows={8}
-          className="font-sans text-base"
+          className="font-sans text-base border-neutral-200 focus:border-neutral-400 focus:ring-0"
           disabled={isSubmitting}
-          helperText="Voice-like, messy, sporadic, and honest. The system adapts to you."
         />
       </div>
 
       {error && (
-        <div className="rounded-md bg-red-50 p-3 border border-red-200">
-          <p className="text-sm text-red-800">{error}</p>
+        <div className="text-sm text-neutral-600">
+          {error}
         </div>
       )}
 
       {success && (
-        <div className="rounded-md bg-green-50 p-3 border border-green-200">
-          <p className="text-sm text-green-800">
-            ✓ Entry saved successfully. AI analysis is processing in the background.
-          </p>
+        <div className="text-sm text-neutral-600">
+          ✓ Entry saved<br />
+          <span className="text-neutral-500">Analysis pending...</span>
         </div>
       )}
 
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-gray-500">
-          {text.trim() ? `${text.trim().split(/\s+/).length} words` : 'Start writing...'}
-        </div>
-
-        <Button type="submit" isLoading={isSubmitting} disabled={!text.trim()}>
-          {isSubmitting ? 'Saving...' : 'Save Entry'}
-        </Button>
-      </div>
-
-      <div className="text-xs text-gray-400 italic">
-        Your entry is saved immediately. AI interpretation happens in the background and will appear
-        on your dashboard when ready.
+      <div className="flex items-center justify-end">
+        <button
+          type="submit"
+          disabled={!text.trim() || isSubmitting}
+          className="px-4 py-2 text-sm font-medium text-neutral-900 bg-white border border-neutral-300 rounded-md hover:border-neutral-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          {isSubmitting ? 'Saving...' : 'Save'}
+        </button>
       </div>
     </form>
   );

@@ -56,8 +56,12 @@ export function ArchiveResolutionButton({
   };
 
   return (
-    <Button variant={variant} onClick={handleArchive} isLoading={isArchiving}>
-      {label}
-    </Button>
+    <button
+      onClick={handleArchive}
+      disabled={isArchiving}
+      className="px-4 py-2 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded-md hover:border-neutral-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+    >
+      {isArchiving ? 'Archiving...' : label}
+    </button>
   );
 }

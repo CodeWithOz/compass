@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { getJournalEntries } from '@/actions/journal';
 import { getResolutions } from '@/actions/resolutions';
+import { AppHeader } from '@/components/layout/AppHeader';
 import { JournalFormWrapper } from './JournalFormWrapper';
 
 export default async function JournalPage() {
@@ -22,27 +23,7 @@ export default async function JournalPage() {
 
   return (
     <>
-      {/* Navigation */}
-      <nav className="border-b border-slate-200 bg-white sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-              <span className="material-icons text-white text-lg">explore</span>
-            </div>
-            <span className="text-base font-bold tracking-wide text-slate-800">
-              Compass
-            </span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <span className="text-xs font-medium text-primary uppercase tracking-wider">
-              New Journal Entry
-            </span>
-            <Link href="/" className="text-slate-400 hover:text-slate-600 transition-colors">
-              <span className="material-icons text-xl">close</span>
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <AppHeader />
 
       {/* Main Content */}
       <main className="max-w-3xl mx-auto px-6 py-10">
@@ -92,20 +73,6 @@ export default async function JournalPage() {
           </section>
         )}
       </main>
-
-      {/* Bottom bar */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200/60">
-        <div className="max-w-3xl mx-auto px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            <span className="material-icons text-sm">schedule</span>
-            Draft auto-saved
-          </div>
-          <div className="flex items-center gap-4 text-xs text-slate-400">
-            <span>Shortcuts</span>
-            <span>Guidelines</span>
-          </div>
-        </div>
-      </footer>
     </>
   );
 }

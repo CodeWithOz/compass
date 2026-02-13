@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { getResolutions } from '@/actions/resolutions';
+import { AppHeader } from '@/components/layout/AppHeader';
 import type { ResolutionStatus } from '@prisma/client';
 
 export default async function ResolutionsPage({
@@ -17,36 +18,26 @@ export default async function ResolutionsPage({
 
   return (
     <>
-      {/* Navigation */}
-      <nav className="border-b border-slate-200 bg-white sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-              <span className="material-icons text-white text-lg">explore</span>
-            </div>
-            <span className="text-base font-bold tracking-wide text-slate-800 uppercase">
-              Compass
-            </span>
-          </Link>
+      <AppHeader />
+
+      {/* Main Content */}
+      <main className="max-w-3xl mx-auto px-6 py-12">
+        <header className="mb-10 flex items-end justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 mb-2">
+              My Resolutions
+            </h1>
+            <p className="text-slate-500">
+              A space for honest reflection and steady momentum.
+            </p>
+          </div>
           <Link
             href="/resolutions/new"
             className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5"
           >
-            <span className="text-lg leading-none">+</span>
+            <span className="material-icons text-base">add</span>
             New Resolution
           </Link>
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <main className="max-w-3xl mx-auto px-6 py-12">
-        <header className="mb-10">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">
-            My Resolutions
-          </h1>
-          <p className="text-slate-500">
-            A space for honest reflection and steady momentum.
-          </p>
         </header>
 
         {/* Active Resolutions */}

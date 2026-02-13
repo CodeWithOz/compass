@@ -1,25 +1,12 @@
 import React from 'react';
 import Link from 'next/link';
+import { AppHeader } from '@/components/layout/AppHeader';
 import { ExportDataButton } from './ExportDataButton';
 
 export default async function SettingsPage() {
   return (
     <>
-      {/* Navigation */}
-      <nav className="border-b border-slate-200 bg-white sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Link href="/" className="text-slate-500 hover:text-slate-700 transition-colors">
-              <span className="material-icons text-xl">arrow_back</span>
-            </Link>
-            <h1 className="text-base font-semibold text-slate-800">Settings</h1>
-          </div>
-          <div className="flex items-center gap-2 text-xs">
-            <span className="text-slate-400 uppercase tracking-wider">System Status:</span>
-            <span className="text-green-600 font-semibold uppercase tracking-wider">Nominal</span>
-          </div>
-        </div>
-      </nav>
+      <AppHeader />
 
       <main className="max-w-3xl mx-auto px-6 py-10">
         {/* Title */}

@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { getMomentumTrends } from '@/actions/analytics';
+import { AppHeader } from '@/components/layout/AppHeader';
 import { startOfWeek } from 'date-fns';
 
 export default async function WeeklyReviewPage() {
@@ -11,27 +12,7 @@ export default async function WeeklyReviewPage() {
 
   return (
     <>
-      {/* Navigation */}
-      <nav className="border-b border-slate-200 bg-white sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-              <span className="material-icons text-white text-lg">explore</span>
-            </div>
-            <span className="text-base font-bold tracking-wide text-slate-800">
-              Compass
-            </span>
-          </Link>
-          <div className="flex items-center gap-6">
-            <Link href="/journal" className="text-sm text-slate-500 hover:text-slate-700 transition-colors">
-              History
-            </Link>
-            <Link href="/settings" className="text-sm text-slate-500 hover:text-slate-700 transition-colors">
-              Settings
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <AppHeader />
 
       <main className="max-w-3xl mx-auto px-6 py-10">
         {/* Header */}

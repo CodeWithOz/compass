@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { getResolutions } from '@/actions/resolutions';
 import { getActiveReframes } from '@/actions/reframes';
 import { getHeatmapData } from '@/actions/analytics';
+import { AppHeader } from '@/components/layout/AppHeader';
 import { subDays } from 'date-fns';
 
 export default async function DashboardPage() {
@@ -38,29 +39,7 @@ export default async function DashboardPage() {
 
   return (
     <>
-      {/* Header */}
-      <header className="max-w-2xl mx-auto pt-10 pb-12 px-6 flex justify-between items-center">
-        <div className="flex items-center gap-2.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-primary" />
-          <h1 className="text-sm font-semibold tracking-[0.2em] uppercase text-slate-500">
-            Compass
-          </h1>
-        </div>
-        <nav className="flex items-center gap-5">
-          <Link
-            href="/resolutions?status=ARCHIVED"
-            className="text-slate-400 hover:text-slate-600 transition-colors"
-          >
-            <span className="material-icons text-xl">inventory_2</span>
-          </Link>
-          <Link
-            href="/settings"
-            className="text-slate-400 hover:text-slate-600 transition-colors"
-          >
-            <span className="material-icons text-xl">settings</span>
-          </Link>
-        </nav>
-      </header>
+      <AppHeader />
 
       <main className="max-w-2xl mx-auto px-6 pb-24">
         {/* Activity Heatmap Section */}

@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { getResolution } from '@/actions/resolutions';
 import { getDailyActivity } from '@/actions/analytics';
 import { getJournalEntries } from '@/actions/journal';
+import { AppHeader } from '@/components/layout/AppHeader';
 import { ArchiveResolutionButton } from './ArchiveResolutionButton';
 import { subDays } from 'date-fns';
 
@@ -32,7 +33,9 @@ export default async function ResolutionDetailPage({
   const recentEntries = (entriesResult as any).data || [];
 
   return (
-    <main className="max-w-3xl mx-auto px-6 py-10">
+    <>
+      <AppHeader />
+      <main className="max-w-3xl mx-auto px-6 py-10">
       {/* Top Navigation */}
       <div className="flex items-center justify-between mb-10">
         <Link
@@ -225,5 +228,6 @@ export default async function ResolutionDetailPage({
         )}
       </footer>
     </main>
+    </>
   );
 }

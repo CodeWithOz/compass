@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getJournalEntry } from '@/actions/journal';
+import { getJournalEntry, getAdjacentEntryIds } from '@/actions/journal';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { ReanalyzeButton } from './ReanalyzeButton';
 
@@ -11,13 +11,17 @@ export default async function JournalEntryPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const entryResult = await getJournalEntry(id);
+  const [entryResult, adjacentResult] = await Promise.all([
+    getJournalEntry(id),
+    getAdjacentEntryIds(id).catch(() => ({ success: false, data: { previousId: null, nextId: null } })),
+  ]);
 
   if (!entryResult.success || !entryResult.data) {
     notFound();
   }
 
   const entry = entryResult.data;
+  const { previousId, nextId } = (adjacentResult as any).data || { previousId: null, nextId: null };
   const latestInterpretation =
     entry.interpretations && entry.interpretations.length > 0
       ? entry.interpretations[0]
@@ -33,15 +37,33 @@ export default async function JournalEntryPage({
         {/* Entry Header */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 mb-4">
-            <Link href="/journal" className="text-slate-400 hover:text-slate-600 transition-colors">
-              <span className="material-icons text-lg">chevron_left</span>
-            </Link>
+            {previousId ? (
+              <Link
+                href={`/journal/${previousId}`}
+                className="text-slate-400 hover:text-slate-600 transition-colors flex items-center"
+              >
+                <span className="material-icons text-lg">chevron_left</span>
+              </Link>
+            ) : (
+              <span className="text-slate-300 cursor-not-allowed flex items-center">
+                <span className="material-icons text-lg">chevron_left</span>
+              </span>
+            )}
             <span className="text-xs font-medium text-primary uppercase tracking-wider bg-primary/10 px-3 py-1 rounded-full">
               Reflection
             </span>
-            <span className="text-slate-400 text-lg">
-              <span className="material-icons text-lg">chevron_right</span>
-            </span>
+            {nextId ? (
+              <Link
+                href={`/journal/${nextId}`}
+                className="text-slate-400 hover:text-slate-600 transition-colors flex items-center"
+              >
+                <span className="material-icons text-lg">chevron_right</span>
+              </Link>
+            ) : (
+              <span className="text-slate-300 cursor-not-allowed flex items-center">
+                <span className="material-icons text-lg">chevron_right</span>
+              </span>
+            )}
           </div>
           <h1 className="text-3xl font-light text-slate-800 mb-2">
             {entryDate.toLocaleDateString('en-US', {

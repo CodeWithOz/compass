@@ -176,6 +176,65 @@ export async function getJournalEntry(id: string) {
 }
 
 /**
+ * Get adjacent journal entry IDs (previous/next) for navigation
+ *
+ * @param currentId - Current journal entry ID
+ * @returns Object with previousId and nextId (null if none exist)
+ */
+export async function getAdjacentEntryIds(currentId: string) {
+  try {
+    const currentEntry = await prisma.journalEntry.findUnique({
+      where: { id: currentId },
+      select: { timestamp: true },
+    });
+
+    if (!currentEntry) {
+      throw new Error('Journal entry not found');
+    }
+
+    // Get previous entry (older, earlier timestamp)
+    const previousEntry = await prisma.journalEntry.findFirst({
+      where: {
+        timestamp: {
+          lt: currentEntry.timestamp,
+        },
+      },
+      orderBy: {
+        timestamp: 'desc',
+      },
+      select: { id: true },
+    });
+
+    // Get next entry (newer, later timestamp)
+    const nextEntry = await prisma.journalEntry.findFirst({
+      where: {
+        timestamp: {
+          gt: currentEntry.timestamp,
+        },
+      },
+      orderBy: {
+        timestamp: 'asc',
+      },
+      select: { id: true },
+    });
+
+    return {
+      success: true,
+      data: {
+        previousId: previousEntry?.id || null,
+        nextId: nextEntry?.id || null,
+      },
+    };
+  } catch (error) {
+    console.error('Error fetching adjacent entry IDs:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch adjacent entries',
+    };
+  }
+}
+
+/**
  * Trigger re-analysis of a journal entry with a different provider
  *
  * Useful for comparing AI interpretations or when switching providers

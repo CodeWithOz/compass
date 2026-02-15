@@ -1,10 +1,12 @@
 import { anthropic } from '@ai-sdk/anthropic';
 import { openai } from '@ai-sdk/openai';
+import { google } from '@ai-sdk/google';
+import type { AIProviderType } from '@prisma/client';
 
 /**
  * Supported AI providers for journal analysis
  */
-export type AIProvider = 'claude' | 'openai' | 'ollama';
+export type AIProvider = 'claude' | 'openai' | 'gemini';
 
 /**
  * Get the AI model for the specified provider
@@ -15,15 +17,16 @@ export type AIProvider = 'claude' | 'openai' | 'ollama';
 export function getAIModel(provider: AIProvider = 'claude') {
   switch (provider) {
     case 'claude':
-      return anthropic('claude-sonnet-4-20250514');
+      // Claude Sonnet 4.5 - Most intelligent model, best for coding and complex agents
+      return anthropic('claude-sonnet-4-5-20250929');
 
     case 'openai':
-      return openai('gpt-4o');
+      // GPT-5.2 - OpenAI's flagship model for coding and agentic tasks
+      return openai('gpt-5.2');
 
-    case 'ollama':
-      // For local LLM support - requires Ollama to be running
-      // We'll skip this for now as it wasn't in the initial setup
-      throw new Error('Ollama support not yet implemented. Use "claude" or "openai".');
+    case 'gemini':
+      // Gemini 3 Pro - Google's state-of-the-art reasoning and multimodal model
+      return google('gemini-3-pro-preview');
 
     default:
       throw new Error(`Unknown AI provider: ${provider}`);
@@ -31,12 +34,12 @@ export function getAIModel(provider: AIProvider = 'claude') {
 }
 
 /**
- * Get the default AI provider from environment variables
+ * Get the default AI provider from environment variables or user settings
  */
 export function getDefaultProvider(): AIProvider {
   const provider = process.env.DEFAULT_AI_PROVIDER || 'claude';
 
-  if (!['claude', 'openai', 'ollama'].includes(provider)) {
+  if (!['claude', 'openai', 'gemini'].includes(provider)) {
     console.warn(`Invalid DEFAULT_AI_PROVIDER: ${provider}. Falling back to "claude".`);
     return 'claude';
   }
@@ -46,23 +49,40 @@ export function getDefaultProvider(): AIProvider {
 
 /**
  * Validate that API keys are configured for the selected provider
+ * Can check either environment variables or provided API key
  */
-export function validateProviderConfig(provider: AIProvider): void {
+export function validateProviderConfig(provider: AIProvider, apiKey?: string): void {
   switch (provider) {
     case 'claude':
-      if (!process.env.ANTHROPIC_API_KEY) {
-        throw new Error('ANTHROPIC_API_KEY environment variable is required for Claude provider');
+      if (!apiKey && !process.env.ANTHROPIC_API_KEY) {
+        throw new Error('ANTHROPIC_API_KEY is required for Claude provider');
       }
       break;
 
     case 'openai':
-      if (!process.env.OPENAI_API_KEY) {
-        throw new Error('OPENAI_API_KEY environment variable is required for OpenAI provider');
+      if (!apiKey && !process.env.OPENAI_API_KEY) {
+        throw new Error('OPENAI_API_KEY is required for OpenAI provider');
       }
       break;
 
-    case 'ollama':
-      // No API key required for local Ollama
+    case 'gemini':
+      if (!apiKey && !process.env.GOOGLE_API_KEY) {
+        throw new Error('GOOGLE_API_KEY is required for Gemini provider');
+      }
       break;
   }
+}
+
+/**
+ * Convert AIProviderType enum to AIProvider string
+ */
+export function providerTypeToProvider(type: AIProviderType): AIProvider {
+  return type.toLowerCase() as AIProvider;
+}
+
+/**
+ * Convert AIProvider string to AIProviderType enum
+ */
+export function providerToProviderType(provider: AIProvider): AIProviderType {
+  return provider.toUpperCase() as AIProviderType;
 }

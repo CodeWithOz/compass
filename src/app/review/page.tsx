@@ -2,13 +2,23 @@ import React from 'react';
 import Link from 'next/link';
 import { getMomentumTrends } from '@/actions/analytics';
 import { AppHeader } from '@/components/layout/AppHeader';
-import { startOfWeek } from 'date-fns';
+import { startOfWeek, addWeeks } from 'date-fns';
 
-export default async function WeeklyReviewPage() {
+export default async function WeeklyReviewPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ week?: string }>;
+}) {
+  const { week: weekParam } = await searchParams;
+  const weekOffset = parseInt(weekParam || '0', 10);
+
   const trendsResult = await getMomentumTrends().catch(() => ({ success: false, data: [] }));
   const summaries = (trendsResult as any).data || [];
 
-  const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+  const currentWeekStart = addWeeks(startOfWeek(new Date(), { weekStartsOn: 1 }), weekOffset);
+  const canGoForward = weekOffset < 0; // Can only go forward if we're viewing a past week
+  const previousWeek = weekOffset - 1;
+  const nextWeek = weekOffset + 1;
 
   return (
     <>
@@ -17,10 +27,30 @@ export default async function WeeklyReviewPage() {
       <main className="max-w-3xl mx-auto px-6 py-10">
         {/* Header */}
         <div className="text-center mb-12">
-          <span className="text-xs font-medium text-primary uppercase tracking-wider bg-primary/10 px-3 py-1 rounded-full">
-            Weekly Review
-          </span>
-          <h1 className="text-3xl font-light text-slate-800 mt-4 mb-2">
+          <div className="inline-flex items-center gap-2 mb-4">
+            <Link
+              href={`/review?week=${previousWeek}`}
+              className="text-slate-400 hover:text-slate-600 transition-colors flex items-center"
+            >
+              <span className="material-icons text-lg">chevron_left</span>
+            </Link>
+            <span className="text-xs font-medium text-primary uppercase tracking-wider bg-primary/10 px-3 py-1 rounded-full">
+              Weekly Review
+            </span>
+            {canGoForward ? (
+              <Link
+                href={`/review?week=${nextWeek}`}
+                className="text-slate-400 hover:text-slate-600 transition-colors flex items-center"
+              >
+                <span className="material-icons text-lg">chevron_right</span>
+              </Link>
+            ) : (
+              <span className="text-slate-300 cursor-not-allowed flex items-center">
+                <span className="material-icons text-lg">chevron_right</span>
+              </span>
+            )}
+          </div>
+          <h1 className="text-3xl font-light text-slate-800 mb-2">
             Week of {currentWeekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
           </h1>
           <p className="text-sm text-slate-400 italic">

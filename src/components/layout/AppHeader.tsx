@@ -10,6 +10,7 @@ const navItems = [
   { href: '/journal', label: 'Journal' },
   { href: '/resolutions', label: 'Resolutions' },
   { href: '/review', label: 'Reflections' },
+  { href: '/settings', label: 'Settings' },
 ];
 
 export function AppHeader() {
@@ -34,7 +35,7 @@ export function AppHeader() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden sm:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-1">
             {navItems.map((item) => (
               <Link
                 key={item.href}
@@ -53,7 +54,7 @@ export function AppHeader() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="sm:hidden p-2 -mr-2 rounded-md hover:bg-slate-100 transition-colors"
+            className="md:hidden p-2 -mr-2 rounded-md hover:bg-slate-100 transition-colors"
             aria-label="Toggle menu"
           >
             {mobileMenuOpen ? (
@@ -70,12 +71,12 @@ export function AppHeader() {
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/40 z-20 sm:hidden backdrop-blur-sm"
+            className="fixed inset-0 bg-black/40 z-20 md:hidden backdrop-blur-sm"
             onClick={() => setMobileMenuOpen(false)}
           />
 
           {/* Drawer */}
-          <div className="fixed top-0 right-0 bottom-0 w-64 bg-white shadow-xl z-30 sm:hidden">
+          <div className="fixed top-0 right-0 bottom-0 w-64 bg-white shadow-xl z-30 md:hidden">
             <div className="p-4">
               <button
                 onClick={() => setMobileMenuOpen(false)}

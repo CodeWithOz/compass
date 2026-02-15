@@ -2,6 +2,10 @@
 
 import React, { useState } from 'react';
 import { updateSettings } from '@/actions/settings';
+import { Card, CardContent } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Settings } from 'lucide-react';
 
 interface SystemPreferencesSectionProps {
   initialExperimentalPhases: boolean;
@@ -22,90 +26,75 @@ export function SystemPreferencesSection({
     setting: 'experimentalPhases' | 'hardMode' | 'reflectiveReminders',
     value: boolean
   ) => {
-    // Update local state immediately for responsive UI
     if (setting === 'experimentalPhases') setExperimentalPhases(value);
     if (setting === 'hardMode') setHardMode(value);
     if (setting === 'reflectiveReminders') setReflectiveReminders(value);
 
-    // Save to database
     await updateSettings({ [setting]: value });
   };
 
   return (
     <section className="mb-12">
       <div className="flex items-center gap-2.5 mb-5">
-        <span className="material-icons text-slate-400 text-xl">settings</span>
-        <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+        <Settings className="h-5 w-5 text-muted-foreground" />
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
           System Preferences
         </h3>
       </div>
-      <div className="bg-white border border-slate-200/80 rounded-xl divide-y divide-slate-200/60">
-        {/* Experimental Phases */}
-        <div className="p-5 flex items-center justify-between">
-          <div>
-            <p className="text-sm font-semibold text-slate-800">Experimental Phases</p>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Enable quarterly season-based tracking shifts and momentum decaying.
-            </p>
-          </div>
-          <button
-            onClick={() => handleToggle('experimentalPhases', !experimentalPhases)}
-            className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${
-              experimentalPhases ? 'bg-primary' : 'bg-slate-300'
-            }`}
-          >
-            <div
-              className={`w-5 h-5 bg-white rounded-full absolute top-0.5 shadow-sm transition-all ${
-                experimentalPhases ? 'right-0.5' : 'left-0.5'
-              }`}
+      <Card>
+        <CardContent className="p-0 divide-y">
+          {/* Experimental Phases */}
+          <div className="p-5 flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="experimental-phases" className="text-sm font-semibold cursor-pointer">
+                Experimental Phases
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Enable quarterly season-based tracking shifts and momentum decaying.
+              </p>
+            </div>
+            <Switch
+              id="experimental-phases"
+              checked={experimentalPhases}
+              onCheckedChange={(checked) => handleToggle('experimentalPhases', checked)}
             />
-          </button>
-        </div>
+          </div>
 
-        {/* Hard Mode */}
-        <div className="p-5 flex items-center justify-between">
-          <div>
-            <p className="text-sm font-semibold text-slate-800">Hard Mode</p>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Stricter feedback loops. No missed days allowed without a full reflection reset.
-            </p>
-          </div>
-          <button
-            onClick={() => handleToggle('hardMode', !hardMode)}
-            className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${
-              hardMode ? 'bg-primary' : 'bg-slate-300'
-            }`}
-          >
-            <div
-              className={`w-5 h-5 bg-white rounded-full absolute top-0.5 shadow-sm transition-all ${
-                hardMode ? 'right-0.5' : 'left-0.5'
-              }`}
+          {/* Hard Mode */}
+          <div className="p-5 flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="hard-mode" className="text-sm font-semibold cursor-pointer">
+                Hard Mode
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Stricter feedback loops. No missed days allowed without a full reflection reset.
+              </p>
+            </div>
+            <Switch
+              id="hard-mode"
+              checked={hardMode}
+              onCheckedChange={(checked) => handleToggle('hardMode', checked)}
             />
-          </button>
-        </div>
+          </div>
 
-        {/* Reflective Reminders */}
-        <div className="p-5 flex items-center justify-between">
-          <div>
-            <p className="text-sm font-semibold text-slate-800">Reflective Reminders</p>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Receive gentle nudges at 9:00 PM to close your daily loop.
-            </p>
-          </div>
-          <button
-            onClick={() => handleToggle('reflectiveReminders', !reflectiveReminders)}
-            className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${
-              reflectiveReminders ? 'bg-primary' : 'bg-slate-300'
-            }`}
-          >
-            <div
-              className={`w-5 h-5 bg-white rounded-full absolute top-0.5 shadow-sm transition-all ${
-                reflectiveReminders ? 'right-0.5' : 'left-0.5'
-              }`}
+          {/* Reflective Reminders */}
+          <div className="p-5 flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="reflective-reminders" className="text-sm font-semibold cursor-pointer">
+                Reflective Reminders
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Receive gentle nudges at 9:00 PM to close your daily loop.
+              </p>
+            </div>
+            <Switch
+              id="reflective-reminders"
+              checked={reflectiveReminders}
+              onCheckedChange={(checked) => handleToggle('reflectiveReminders', checked)}
             />
-          </button>
-        </div>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
     </section>
   );
 }

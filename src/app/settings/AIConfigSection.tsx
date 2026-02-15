@@ -1,7 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { updateSettings } from '@/actions/settings';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Brain, Eye, EyeOff, Loader2 } from 'lucide-react';
 import type { AIProviderType } from '@prisma/client';
 
 interface AIConfigSectionProps {
@@ -43,7 +48,7 @@ export function AIConfigSection({
       } else {
         setSaveMessage(result.error || 'Failed to save settings');
       }
-    } catch (error) {
+    } catch {
       setSaveMessage('Failed to save settings');
     } finally {
       setIsSaving(false);
@@ -59,103 +64,101 @@ export function AIConfigSection({
   return (
     <section className="mb-12">
       <div className="flex items-center gap-2.5 mb-5">
-        <span className="material-icons text-slate-400 text-xl">psychology</span>
-        <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+        <Brain className="h-5 w-5 text-muted-foreground" />
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
           AI Configuration
         </h3>
       </div>
-      <div className="bg-white border border-slate-200/80 rounded-xl p-6 space-y-6">
-        {/* Primary Model */}
-        <div>
-          <label className="block text-sm font-semibold text-slate-800 mb-2">
-            Primary Model
-          </label>
-          <select
-            value={provider}
-            onChange={(e) => setProvider(e.target.value as AIProviderType)}
-            className="px-4 py-2.5 text-sm border border-slate-300 rounded-lg bg-white focus:border-primary outline-none transition-colors"
-          >
-            <option value="CLAUDE">Claude Sonnet 4.5 (Recommended)</option>
-            <option value="OPENAI">GPT-5.2</option>
-            <option value="GEMINI">Gemini 3 Pro</option>
-          </select>
-        </div>
-
-        {/* API Keys */}
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-semibold text-slate-800 mb-2">
-              Anthropic API Key
-            </label>
-            <div className="relative">
-              <input
-                type={showKeys ? 'text' : 'password'}
-                placeholder="sk-ant-..."
-                value={anthropicKey}
-                onChange={(e) => setAnthropicKey(e.target.value)}
-                className="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg bg-white focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-colors"
-              />
-              <button
-                type="button"
-                onClick={() => setShowKeys(!showKeys)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-              >
-                <span className="material-icons text-lg">
-                  {showKeys ? 'visibility_off' : 'visibility'}
-                </span>
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-slate-800 mb-2">
-              OpenAI API Key
-            </label>
-            <input
-              type={showKeys ? 'text' : 'password'}
-              placeholder="sk-..."
-              value={openaiKey}
-              onChange={(e) => setOpenaiKey(e.target.value)}
-              className="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg bg-white focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-colors"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-slate-800 mb-2">
-              Google AI API Key
-            </label>
-            <input
-              type={showKeys ? 'text' : 'password'}
-              placeholder="AIza..."
-              value={geminiKey}
-              onChange={(e) => setGeminiKey(e.target.value)}
-              className="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg bg-white focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-colors"
-            />
-          </div>
-
-          <p className="text-xs text-slate-400">
-            API keys are stored locally and used for journal analysis. You only need to provide a key for your selected provider.
-          </p>
-        </div>
-
-        {/* Save Button */}
-        {hasChanges && (
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-lg transition-colors disabled:opacity-50"
+      <Card>
+        <CardContent className="p-6 space-y-6">
+          {/* Primary Model */}
+          <div className="space-y-2">
+            <Label htmlFor="ai-model">Primary Model</Label>
+            <select
+              id="ai-model"
+              value={provider}
+              onChange={(e) => setProvider(e.target.value as AIProviderType)}
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
             >
-              {isSaving ? 'Saving...' : 'Save Changes'}
-            </button>
-            {saveMessage && (
-              <p className={`text-sm ${saveMessage.includes('success') ? 'text-green-600' : 'text-red-600'}`}>
-                {saveMessage}
-              </p>
-            )}
+              <option value="CLAUDE">Claude Sonnet 4.5 (Recommended)</option>
+              <option value="OPENAI">GPT-5.2</option>
+              <option value="GEMINI">Gemini 3 Pro</option>
+            </select>
           </div>
-        )}
-      </div>
+
+          {/* API Keys */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="anthropic-key">Anthropic API Key</Label>
+              <div className="relative">
+                <Input
+                  id="anthropic-key"
+                  type={showKeys ? 'text' : 'password'}
+                  placeholder="sk-ant-..."
+                  value={anthropicKey}
+                  onChange={(e) => setAnthropicKey(e.target.value)}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowKeys(!showKeys)}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                >
+                  {showKeys ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="openai-key">OpenAI API Key</Label>
+              <Input
+                id="openai-key"
+                type={showKeys ? 'text' : 'password'}
+                placeholder="sk-..."
+                value={openaiKey}
+                onChange={(e) => setOpenaiKey(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="gemini-key">Google AI API Key</Label>
+              <Input
+                id="gemini-key"
+                type={showKeys ? 'text' : 'password'}
+                placeholder="AIza..."
+                value={geminiKey}
+                onChange={(e) => setGeminiKey(e.target.value)}
+              />
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              API keys are stored locally and used for journal analysis. You only need to provide a key for your selected provider.
+            </p>
+          </div>
+
+          {/* Save Button */}
+          {hasChanges && (
+            <div className="flex items-center gap-3">
+              <Button onClick={handleSave} disabled={isSaving} size="sm">
+                {isSaving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Changes'
+                )}
+              </Button>
+              {saveMessage && (
+                <p className={`text-sm ${saveMessage.includes('success') ? 'text-green-600' : 'text-destructive'}`}>
+                  {saveMessage}
+                </p>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </section>
   );
 }

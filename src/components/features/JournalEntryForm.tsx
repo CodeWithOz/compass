@@ -2,6 +2,9 @@
 
 import React, { useState } from 'react';
 import { createJournalEntry } from '@/actions/journal';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Loader2 } from 'lucide-react';
 import type { AIProvider } from '@/lib/ai/providers';
 
 export interface JournalEntryFormProps {
@@ -63,35 +66,40 @@ export function JournalEntryForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <textarea
+      <Textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder="What's been happening?"
         rows={12}
-        className="w-full text-base text-slate-700 placeholder:text-slate-400 bg-white border border-slate-200/80 rounded-xl p-6 outline-none resize-none leading-relaxed focus:border-primary/30 transition-colors"
+        className="text-base leading-relaxed p-6 rounded-xl resize-none border-border/80 focus-visible:ring-ring/30"
         disabled={isSubmitting}
       />
 
       {error && (
-        <div className="text-sm text-red-600">
-          {error}
-        </div>
+        <p className="text-sm text-destructive">{error}</p>
       )}
 
       <div className="flex flex-col items-center gap-3 pt-4">
-        <button
+        <Button
           type="submit"
           disabled={!text.trim() || isSubmitting}
-          className="bg-primary hover:bg-primary/90 text-white px-10 py-3 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          size="lg"
+          className="px-10"
         >
-          {isSubmitting ? 'Saving...' : 'Save'}
-        </button>
+          {isSubmitting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            'Save'
+          )}
+        </Button>
 
         {success && (
-          <div className="flex items-center gap-2 text-sm text-slate-400">
-            <span className="material-icons text-sm animate-spin">autorenew</span>
+          <p className="text-sm text-muted-foreground">
             Analysis pending...
-          </div>
+          </p>
         )}
       </div>
     </form>

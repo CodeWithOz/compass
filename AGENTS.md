@@ -9,7 +9,7 @@ Read **COMPASS_PRINCIPLE.md** to understand the principles of the system. That d
 - **Framework:** Next.js 16 (App Router, React 19, TypeScript)
 - **Database:** PostgreSQL 16 via Docker (one container per worktree)
 - **ORM:** Prisma 7 with `@prisma/adapter-pg`
-- **Styling:** Tailwind CSS 4
+- **Styling:** Tailwind CSS 4 + shadcn/ui (New York style, Lucide icons)
 - **AI:** Vercel AI SDK (`@ai-sdk/anthropic`, `@ai-sdk/openai`)
 
 ---
@@ -73,9 +73,9 @@ src/
     settings/        # Settings page
   actions/           # Server actions
   components/
-    ui/              # Reusable UI primitives (Button, Card, Input, etc.)
+    ui/              # shadcn/ui primitives (button, card, input, badge, sheet, switch, etc.)
     features/        # Feature-specific components
-    layout/          # Layout components (AppShell, AppHeader)
+    layout/          # Layout components (AppHeader)
   lib/
     ai/              # AI provider config, prompts, analysis
     db/              # Prisma client singleton
@@ -96,3 +96,32 @@ scripts/
 - **Server actions:** Prefer server actions in `src/actions/` for mutations over API routes.
 - **Path aliases:** `@/*` maps to `./src/*`.
 - **Environment:** `.env.local` is the active env file (`.env.example` is the template).
+
+---
+
+## UI Components (shadcn/ui)
+
+The project uses [shadcn/ui](https://ui.shadcn.com) for all UI primitives. Configuration lives in `components.json` (New York style, neutral base color, CSS variables enabled).
+
+### Adding new components
+
+```bash
+npx shadcn@latest add <component-name>
+```
+
+This generates the component into `src/components/ui/`. Components are **owned code** — feel free to modify them.
+
+### Installed components
+
+`alert`, `badge`, `button`, `card`, `input`, `label`, `progress`, `radio-group`, `separator`, `sheet`, `slider`, `switch`, `textarea`
+
+### Conventions
+
+- **Import from lowercase files:** `import { Button } from '@/components/ui/button'`
+- **Use `cn()` for class merging:** `import { cn } from '@/lib/utils'` — always use this instead of string concatenation for Tailwind classes.
+- **Icons:** Use [Lucide React](https://lucide.dev) (`lucide-react`) — this is shadcn's default icon library. Do not use Material Icons in new code.
+- **Color tokens:** Use CSS variable-based colors (`text-foreground`, `bg-card`, `text-muted-foreground`, `border-destructive`, etc.) instead of raw Tailwind colors (`text-gray-700`, `bg-white`, etc.). This ensures theme consistency.
+- **Form fields:** Pair shadcn `Input`/`Textarea` with shadcn `Label`. For errors, use the `Alert` component with `variant="destructive"`.
+- **Loading states:** Use the `Loader2` icon from Lucide with `animate-spin` inside buttons.
+- **Mobile navigation:** The `AppHeader` uses shadcn `Sheet` for the mobile slide-out menu.
+- **Toggles:** Use shadcn `Switch` for boolean settings — do not build custom toggle components.

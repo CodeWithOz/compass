@@ -18,18 +18,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="light">
+    <html lang="en" suppressHydrationWarning>
       <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
         <link
           href="https://fonts.googleapis.com/icon?family=Material+Icons"
           rel="stylesheet"
         />
       </head>
-      <body className={`${geistSans.variable} font-display bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-200 min-h-screen`}>
+      <body className={`${geistSans.variable} antialiased min-h-screen bg-background text-foreground`}>
         {children}
       </body>
     </html>

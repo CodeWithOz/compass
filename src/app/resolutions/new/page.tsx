@@ -7,12 +7,12 @@ export default function NewResolutionPage() {
     <>
       <AppHeader />
 
-      <main className="max-w-xl mx-auto px-6 py-8">
+      <main className="max-w-xl mx-auto px-6 py-8 pb-20">
         <div className="mb-8">
-          <h1 className="text-2xl font-medium text-slate-900 mb-2">
+          <h1 className="text-2xl font-medium tracking-tight mb-2">
             New Resolution
           </h1>
-          <p className="text-slate-500 leading-relaxed">
+          <p className="text-muted-foreground leading-relaxed">
             This is a direction you intend to take seriously — not a promise to perform.
           </p>
         </div>

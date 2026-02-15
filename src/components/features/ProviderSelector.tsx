@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Select } from '@/components/ui/Select';
+import { Label } from '@/components/ui/label';
 import type { AIProvider } from '@/lib/ai/providers';
 
 export interface ProviderSelectorProps {
@@ -10,26 +10,23 @@ export interface ProviderSelectorProps {
   disabled?: boolean;
 }
 
-/**
- * Provider Selector Component
- *
- * Switch between AI providers (Claude, OpenAI)
- * Used for manual re-analysis or settings
- */
 export function ProviderSelector({ value, onChange, disabled }: ProviderSelectorProps) {
-  const options = [
-    { value: 'claude', label: 'Claude (Anthropic)' },
-    { value: 'openai', label: 'OpenAI GPT-4' },
-  ];
-
   return (
-    <Select
-      label="AI Provider"
-      value={value}
-      onChange={(e) => onChange(e.target.value as AIProvider)}
-      options={options}
-      disabled={disabled}
-      helperText="Choose which AI model to use for journal analysis"
-    />
+    <div className="space-y-2">
+      <Label htmlFor="ai-provider">AI Provider</Label>
+      <select
+        id="ai-provider"
+        value={value}
+        onChange={(e) => onChange(e.target.value as AIProvider)}
+        disabled={disabled}
+        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+      >
+        <option value="claude">Claude (Anthropic)</option>
+        <option value="openai">OpenAI GPT-4</option>
+      </select>
+      <p className="text-xs text-muted-foreground">
+        Choose which AI model to use for journal analysis
+      </p>
+    </div>
   );
 }

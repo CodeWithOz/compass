@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { archiveResolution } from '@/actions/resolutions';
+import { Button } from '@/components/ui/button';
+import { Archive, Loader2 } from 'lucide-react';
 
 export interface ArchiveResolutionButtonProps {
   resolutionId: string;
@@ -31,7 +33,6 @@ export function ArchiveResolutionButton({
       const result = await archiveResolution(resolutionId);
 
       if (result.success) {
-        // Navigate to resolutions list after successful archive
         router.push('/resolutions');
       } else {
         alert(result.error);
@@ -45,13 +46,19 @@ export function ArchiveResolutionButton({
   };
 
   return (
-    <button
+    <Button
+      variant="ghost"
+      size="sm"
       onClick={handleArchive}
       disabled={isArchiving}
-      className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      className="text-muted-foreground"
     >
-      <span className="material-icons text-base">inventory_2</span>
+      {isArchiving ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <Archive className="h-4 w-4" />
+      )}
       {isArchiving ? 'Archiving...' : label}
-    </button>
+    </Button>
   );
 }

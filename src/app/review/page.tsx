@@ -2,6 +2,11 @@ import React from 'react';
 import Link from 'next/link';
 import { getMomentumTrends } from '@/actions/analytics';
 import { AppHeader } from '@/components/layout/AppHeader';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { startOfWeek, addWeeks } from 'date-fns';
 
 export default async function WeeklyReviewPage({
@@ -12,11 +17,11 @@ export default async function WeeklyReviewPage({
   const { week: weekParam } = await searchParams;
   const weekOffset = parseInt(weekParam || '0', 10);
 
-  const trendsResult = await getMomentumTrends().catch(() => ({ success: false, data: [] }));
-  const summaries = (trendsResult as any).data || [];
+  const trendsResult = await getMomentumTrends().catch(() => null);
+  const summaries = trendsResult?.data ?? [];
 
   const currentWeekStart = addWeeks(startOfWeek(new Date(), { weekStartsOn: 1 }), weekOffset);
-  const canGoForward = weekOffset < 0; // Can only go forward if we're viewing a past week
+  const canGoForward = weekOffset < 0;
   const previousWeek = weekOffset - 1;
   const nextWeek = weekOffset + 1;
 
@@ -28,82 +33,91 @@ export default async function WeeklyReviewPage({
         {/* Header */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 mb-4">
-            <Link
-              href={`/review?week=${previousWeek}`}
-              className="text-slate-400 hover:text-slate-600 transition-colors flex items-center"
-            >
-              <span className="material-icons text-lg">chevron_left</span>
-            </Link>
-            <span className="text-xs font-medium text-primary uppercase tracking-wider bg-primary/10 px-3 py-1 rounded-full">
-              Weekly Review
-            </span>
-            {canGoForward ? (
-              <Link
-                href={`/review?week=${nextWeek}`}
-                className="text-slate-400 hover:text-slate-600 transition-colors flex items-center"
-              >
-                <span className="material-icons text-lg">chevron_right</span>
+            <Button variant="ghost" size="icon" asChild>
+              <Link href={`/review?week=${previousWeek}`}>
+                <ChevronLeft className="h-4 w-4" />
               </Link>
+            </Button>
+            <Badge variant="outline" className="border-primary/30 text-primary bg-primary/10">
+              Weekly Review
+            </Badge>
+            {canGoForward ? (
+              <Button variant="ghost" size="icon" asChild>
+                <Link href={`/review?week=${nextWeek}`}>
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              </Button>
             ) : (
-              <span className="text-slate-300 cursor-not-allowed flex items-center">
-                <span className="material-icons text-lg">chevron_right</span>
-              </span>
+              <Button variant="ghost" size="icon" disabled>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             )}
           </div>
-          <h1 className="text-3xl font-light text-slate-800 mb-2">
+          <h1 className="text-3xl font-light mb-2">
             Week of {currentWeekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
           </h1>
-          <p className="text-sm text-slate-400 italic">
+          <p className="text-sm text-muted-foreground italic">
             What has been happening? Patterns, rhythms, and signals.
           </p>
         </div>
 
         {/* Summaries */}
         {summaries.length === 0 ? (
-          <div className="bg-white border border-slate-200/80 rounded-xl p-12 text-center">
-            <p className="text-slate-500 mb-2">No weekly summaries available yet</p>
-            <p className="text-sm text-slate-400">
-              Weekly summaries are generated automatically based on your journal entries and activity patterns.
-            </p>
-          </div>
+          <Card>
+            <CardContent className="p-12 text-center">
+              <p className="text-muted-foreground mb-2">No weekly summaries available yet</p>
+              <p className="text-sm text-muted-foreground">
+                Weekly summaries are generated automatically based on your journal entries and activity patterns.
+              </p>
+            </CardContent>
+          </Card>
         ) : (
           <div className="space-y-6">
             {(['GROWING', 'STABLE', 'DECLINING'] as const).map((trend) => {
-              const summariesWithTrend = summaries.filter((s: any) => s.momentumTrend === trend);
+              const summariesWithTrend = summaries.filter((s) => s.momentumTrend === trend);
               if (summariesWithTrend.length === 0) return null;
 
               const trendConfig = {
-                GROWING: { title: 'Growing Momentum', icon: 'trending_up', color: 'text-green-600' },
-                STABLE: { title: 'Stable Momentum', icon: 'trending_flat', color: 'text-primary' },
-                DECLINING: { title: 'Shifting Patterns', icon: 'trending_down', color: 'text-amber-600' },
+                GROWING: {
+                  title: 'Growing Momentum',
+                  icon: <TrendingUp className="h-5 w-5 text-green-600" />,
+                  color: 'text-green-600',
+                },
+                STABLE: {
+                  title: 'Stable Momentum',
+                  icon: <Minus className="h-5 w-5 text-primary" />,
+                  color: 'text-primary',
+                },
+                DECLINING: {
+                  title: 'Shifting Patterns',
+                  icon: <TrendingDown className="h-5 w-5 text-amber-600" />,
+                  color: 'text-amber-600',
+                },
               };
 
               return (
                 <div key={trend}>
                   <div className="flex items-center gap-2 mb-4">
-                    <span className={`material-icons ${trendConfig[trend].color}`}>
-                      {trendConfig[trend].icon}
-                    </span>
+                    {trendConfig[trend].icon}
                     <h2 className={`text-lg font-semibold ${trendConfig[trend].color}`}>
                       {trendConfig[trend].title}
                     </h2>
-                    <span className="text-xs text-slate-400">({summariesWithTrend.length})</span>
+                    <span className="text-xs text-muted-foreground">({summariesWithTrend.length})</span>
                   </div>
                   <div className="space-y-3">
-                    {summariesWithTrend.map((summary: any) => (
-                      <div
-                        key={summary.id}
-                        className="bg-white border border-slate-200/80 rounded-xl p-5"
-                      >
-                        <h3 className="text-sm font-semibold text-slate-800 mb-2">
-                          {summary.resolutionName || 'Resolution'}
-                        </h3>
-                        {summary.narrativeSummary && (
-                          <p className="text-sm text-slate-600 leading-relaxed">
-                            {summary.narrativeSummary}
-                          </p>
-                        )}
-                      </div>
+                    {summariesWithTrend.map((summary) => (
+                      <Card key={summary.id}>
+                        <CardContent className="p-5">
+                          <h3 className="text-sm font-semibold mb-2">
+                            {summary.resolution.name}
+                          </h3>
+                          {summary.summaryText && (
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              {summary.summaryText}
+                            </p>
+                          )}
+                        </CardContent>
+                      </Card>
                     ))}
                   </div>
                 </div>
@@ -113,8 +127,9 @@ export default async function WeeklyReviewPage({
         )}
 
         {/* Footer */}
-        <footer className="mt-16 text-center py-8 border-t border-slate-200/60">
-          <p className="text-xs text-slate-400 italic">
+        <footer className="mt-16 text-center py-8">
+          <Separator className="mb-8" />
+          <p className="text-xs text-muted-foreground italic">
             This is descriptive, not judgmental. Use it to understand what&apos;s happening, not to judge yourself.
           </p>
         </footer>

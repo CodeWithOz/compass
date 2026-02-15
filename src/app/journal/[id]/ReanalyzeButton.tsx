@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { triggerReanalysis } from '@/actions/journal';
+import { Button } from '@/components/ui/button';
+import { Loader2, RefreshCw } from 'lucide-react';
 import type { AIProvider } from '@/lib/ai/providers';
 
 export interface ReanalyzeButtonProps {
@@ -35,12 +37,18 @@ export function ReanalyzeButton({ entryId }: ReanalyzeButtonProps) {
   };
 
   return (
-    <button
+    <Button
+      variant="ghost"
+      size="icon"
       onClick={handleReanalyze}
       disabled={isAnalyzing}
-      className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors disabled:opacity-50"
+      className="h-8 w-8 rounded-full"
     >
-      <span className="material-icons text-slate-500 text-lg">person</span>
-    </button>
+      {isAnalyzing ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <RefreshCw className="h-4 w-4" />
+      )}
+    </Button>
   );
 }

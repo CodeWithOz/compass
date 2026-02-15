@@ -1,13 +1,16 @@
 import React from 'react';
 import { Compass } from 'lucide-react';
 import { AppHeader } from '@/components/layout/AppHeader';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import { ExportDataButton } from './ExportDataButton';
 import { AIConfigSection } from './AIConfigSection';
 import { SystemPreferencesSection } from './SystemPreferencesSection';
 import { getSettings } from '@/actions/settings';
+import { FolderOpen, AlertTriangle } from 'lucide-react';
 
 export default async function SettingsPage() {
-  // Load user settings
   const { data: settings } = await getSettings();
 
   return (
@@ -17,8 +20,8 @@ export default async function SettingsPage() {
       <main className="max-w-3xl mx-auto px-6 py-10">
         {/* Title */}
         <div className="mb-10">
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">Compass Configuration</h2>
-          <p className="text-slate-500 leading-relaxed">
+          <h2 className="text-2xl font-bold tracking-tight mb-2">Compass Configuration</h2>
+          <p className="text-muted-foreground leading-relaxed">
             Manage your personal data, AI integrations, and system-wide tracking preferences.
             All data is processed locally where possible.
           </p>
@@ -27,26 +30,30 @@ export default async function SettingsPage() {
         {/* Data Management */}
         <section className="mb-12">
           <div className="flex items-center gap-2.5 mb-5">
-            <span className="material-icons text-slate-400 text-xl">folder_open</span>
-            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+            <FolderOpen className="h-5 w-5 text-muted-foreground" />
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
               Data Management
             </h3>
           </div>
-          <div className="bg-white border border-slate-200/80 rounded-xl p-6">
-            <h4 className="text-base font-semibold text-slate-800 mb-1">Export your momentum</h4>
-            <p className="text-sm text-slate-500 mb-4">
-              Download all your resolutions, reflections, and tracking logs in a machine-readable format.
-            </p>
-            <div className="flex items-center gap-3">
-              <ExportDataButton />
-              <button className="px-4 py-2 text-sm font-medium text-primary border border-primary/30 rounded-lg hover:bg-primary/5 transition-colors">
-                Export as JSON
-              </button>
-            </div>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Export your momentum</CardTitle>
+              <CardDescription>
+                Download all your resolutions, reflections, and tracking logs in a machine-readable format.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-3">
+                <ExportDataButton />
+                <Button variant="outline" size="sm" className="text-primary border-primary/30 hover:bg-primary/5 hover:text-primary">
+                  Export as JSON
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </section>
 
-        {/* AI Configuration - Now Interactive */}
+        {/* AI Configuration */}
         {settings && (
           <AIConfigSection
             initialProvider={settings.aiProvider}
@@ -56,7 +63,7 @@ export default async function SettingsPage() {
           />
         )}
 
-        {/* System Preferences - Now Interactive */}
+        {/* System Preferences */}
         {settings && (
           <SystemPreferencesSection
             initialExperimentalPhases={settings.experimentalPhases}
@@ -67,36 +74,38 @@ export default async function SettingsPage() {
 
         {/* Danger Zone */}
         <section className="mb-12">
-          <div className="border-t border-slate-200/60 pt-8">
-            <div className="flex items-center gap-2 mb-5">
-              <span className="material-icons text-red-500 text-xl">warning</span>
-              <h3 className="text-xs font-semibold text-red-500 uppercase tracking-widest">
-                Danger Zone
-              </h3>
-            </div>
-            <div className="bg-red-50/50 border border-red-200/40 rounded-xl p-5 flex items-center justify-between">
+          <Separator className="mb-8" />
+          <div className="flex items-center gap-2 mb-5">
+            <AlertTriangle className="h-5 w-5 text-destructive" />
+            <h3 className="text-xs font-semibold text-destructive uppercase tracking-widest">
+              Danger Zone
+            </h3>
+          </div>
+          <Card className="border-destructive/20">
+            <CardContent className="p-5 flex items-center justify-between">
               <div>
-                <p className="text-sm font-semibold text-red-700">Purge All System Data</p>
-                <p className="text-xs text-red-500/80 mt-0.5">
+                <p className="text-sm font-semibold">Purge All System Data</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
                   Permanently delete your entire history. This action cannot be undone.
                 </p>
               </div>
-              <button className="px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors">
+              <Button variant="destructive" size="sm">
                 Delete Data
-              </button>
-            </div>
-          </div>
+              </Button>
+            </CardContent>
+          </Card>
         </section>
 
         {/* Footer */}
-        <footer className="text-center py-8 border-t border-slate-200/60">
+        <footer className="text-center py-8">
+          <Separator className="mb-8" />
           <div className="flex items-center justify-center gap-2 mb-2">
             <Compass className="h-5 w-5 text-primary" strokeWidth={1.5} />
           </div>
-          <p className="text-xs text-slate-400 uppercase tracking-wider font-medium">
+          <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
             Compass v1.0.0
           </p>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             Designed for honest momentum. Locally stored, globally focused.
           </p>
         </footer>

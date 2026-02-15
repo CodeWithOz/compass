@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Download, Loader2 } from 'lucide-react';
 
 export function ExportDataButton() {
   const [isExporting, setIsExporting] = useState(false);
@@ -37,13 +39,18 @@ export function ExportDataButton() {
   };
 
   return (
-    <button
-      onClick={handleExport}
-      disabled={isExporting}
-      className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
-    >
-      <span className="material-icons text-sm">download</span>
-      {isExporting ? 'Exporting...' : 'Export as CSV'}
-    </button>
+    <Button onClick={handleExport} disabled={isExporting} size="sm">
+      {isExporting ? (
+        <>
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Exporting...
+        </>
+      ) : (
+        <>
+          <Download className="h-4 w-4" />
+          Export as CSV
+        </>
+      )}
+    </Button>
   );
 }

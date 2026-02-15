@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { dismissReframe, snoozeReframe, applyReframe } from '@/actions/reframes';
 import type { ReframeType } from '@prisma/client';
 
@@ -15,18 +16,6 @@ export interface ReframeAlertProps {
   onDismiss?: () => void;
 }
 
-/**
- * Reframe Alert Component
- *
- * CRITICAL: Strategic reframes are FIRST-CLASS, not buried in text
- * - Distinct visual treatment (prominent display)
- * - Show reframe type as badge
- * - Display reason and concrete suggestion
- * - Action buttons: Apply, Dismiss, Remind Later
- * - Surface at top of dashboard when present
- *
- * Reframes are about questioning the resolution itself, not suggesting tweaks
- */
 export function ReframeAlert({
   interpretationId,
   type,
@@ -41,53 +30,32 @@ export function ReframeAlert({
   const reframeConfig = {
     MISALIGNMENT: {
       icon: '🔄',
-      color: 'orange',
       title: 'Possible Misalignment',
       description: 'This resolution may conflict with your current reality or priorities',
     },
     STAGNATION: {
       icon: '🔁',
-      color: 'amber',
       title: 'Pattern of Stagnation',
       description: 'Consistent effort without meaningful progress detected',
     },
     OVER_OPTIMIZATION: {
       icon: '📊',
-      color: 'blue',
       title: 'Over-Optimization Signal',
       description: 'Focus on metrics may be obscuring the underlying purpose',
     },
     PHASE_MISMATCH: {
       icon: '⚖️',
-      color: 'indigo',
       title: 'Phase Expectation Mismatch',
       description: 'Current phase expectations may not fit actual capacity',
     },
     EXIT_SIGNAL: {
       icon: '🚪',
-      color: 'purple',
       title: 'Exit Signal Detected',
       description: 'Pattern suggests this may be a natural completion point',
     },
   };
 
   const config = reframeConfig[type];
-
-  const colorClasses = {
-    orange: 'bg-orange-50 border-orange-300 text-orange-900',
-    amber: 'bg-amber-50 border-amber-300 text-amber-900',
-    blue: 'bg-blue-50 border-blue-300 text-blue-900',
-    indigo: 'bg-indigo-50 border-indigo-300 text-indigo-900',
-    purple: 'bg-purple-50 border-purple-300 text-purple-900',
-  };
-
-  const badgeClasses = {
-    orange: 'bg-orange-100 text-orange-800 border-orange-200',
-    amber: 'bg-amber-100 text-amber-800 border-amber-200',
-    blue: 'bg-blue-100 text-blue-800 border-blue-200',
-    indigo: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-    purple: 'bg-purple-100 text-purple-800 border-purple-200',
-  };
 
   const handleDismiss = async () => {
     setIsProcessing(true);
@@ -132,7 +100,7 @@ export function ReframeAlert({
   };
 
   return (
-    <Card className={`border-2 ${colorClasses[config.color as keyof typeof colorClasses]}`}>
+    <Card className="border-2 border-amber-200 bg-amber-50/50">
       <CardContent className="py-4">
         <div className="flex items-start gap-4">
           <div className="text-3xl flex-shrink-0">{config.icon}</div>
@@ -141,18 +109,14 @@ export function ReframeAlert({
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="font-semibold text-lg">{config.title}</h3>
-                <span
-                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${
-                    badgeClasses[config.color as keyof typeof badgeClasses]
-                  }`}
-                >
+                <Badge variant="outline">
                   {type.replace('_', ' ')}
-                </span>
+                </Badge>
               </div>
-              <p className="text-sm opacity-80">{config.description}</p>
+              <p className="text-sm text-muted-foreground">{config.description}</p>
             </div>
 
-            <div className="bg-white bg-opacity-50 rounded-md p-3 space-y-2">
+            <div className="rounded-md border bg-background/60 p-3 space-y-2">
               <div>
                 <p className="text-sm font-medium">Resolution:</p>
                 <p className="text-sm">{resolutionName}</p>
@@ -161,14 +125,14 @@ export function ReframeAlert({
               {reason && (
                 <div>
                   <p className="text-sm font-medium">Why this matters:</p>
-                  <p className="text-sm">{reason}</p>
+                  <p className="text-sm text-muted-foreground">{reason}</p>
                 </div>
               )}
 
               {suggestion && (
                 <div>
                   <p className="text-sm font-medium">Consider:</p>
-                  <p className="text-sm">{suggestion}</p>
+                  <p className="text-sm text-muted-foreground">{suggestion}</p>
                 </div>
               )}
             </div>

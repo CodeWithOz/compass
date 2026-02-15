@@ -22,12 +22,12 @@ export default async function EditResolutionPage({
     <>
       <AppHeader />
 
-      <main className="max-w-xl mx-auto px-6 py-8">
+      <main className="max-w-xl mx-auto px-6 py-8 pb-20">
         <div className="mb-8">
-          <h1 className="text-2xl font-medium text-slate-900 mb-2">
+          <h1 className="text-2xl font-medium tracking-tight mb-2">
             Edit Resolution
           </h1>
-          <p className="text-slate-500 leading-relaxed">
+          <p className="text-muted-foreground leading-relaxed">
             Update the details of your resolution as it evolves.
           </p>
         </div>

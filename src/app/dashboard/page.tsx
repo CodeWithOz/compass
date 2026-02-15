@@ -4,6 +4,10 @@ import { getResolutions } from '@/actions/resolutions';
 import { getActiveReframes } from '@/actions/reframes';
 import { getHeatmapData } from '@/actions/analytics';
 import { AppHeader } from '@/components/layout/AppHeader';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Pencil } from 'lucide-react';
 import { subDays } from 'date-fns';
 
 export default async function DashboardPage() {
@@ -12,30 +16,32 @@ export default async function DashboardPage() {
 
   const [resolutionsResult, reframesResult, heatmapResult] = await Promise.all([
     getResolutions('ACTIVE'),
-    getActiveReframes().catch(() => ({ success: false, data: {} })),
-    getHeatmapData(startDate, endDate).catch(() => ({ success: false, data: [] })),
+    getActiveReframes().catch(() => null),
+    getHeatmapData(startDate, endDate).catch(() => null),
   ]);
 
-  const resolutions = resolutionsResult.data || [];
-  const reframesByResolution = (reframesResult as any).data || {};
-  const heatmapData = (heatmapResult as any).data || [];
+  const resolutions = resolutionsResult.data ?? [];
+  const reframesByResolution = reframesResult?.data ?? null;
+  const heatmapData = heatmapResult?.data ?? null;
 
-  // Flatten reframes
-  const allReframes = Object.entries(reframesByResolution).flatMap(([resId, reframes]: [string, any]) =>
-    reframes.map((reframe: any) => ({
-      ...reframe,
-      resolutionName:
-        resolutions.find((r) => r.id === resId)?.name || 'Unknown Resolution',
-    }))
-  );
+  const allReframes = reframesByResolution
+    ? Object.entries(reframesByResolution).flatMap(([resId, reframes]) =>
+        reframes.map((reframe) => ({
+          ...reframe,
+          resolutionName:
+            resolutions.find((r) => r.id === resId)?.name || 'Unknown Resolution',
+        }))
+      )
+    : [];
 
-  // Flatten activities for combined heatmap
-  const allActivities = heatmapData.flatMap((item: any) =>
-    item.activities.map((a: any) => ({
-      date: new Date(a.date),
-      level: a.level,
-    }))
-  );
+  const allActivities = heatmapData
+    ? heatmapData.flatMap((item) =>
+        item.activities.map((a) => ({
+          date: new Date(a.date),
+          level: a.level,
+        }))
+      )
+    : [];
 
   return (
     <>
@@ -45,10 +51,10 @@ export default async function DashboardPage() {
         {/* Activity Heatmap Section */}
         <section className="mb-14">
           <div className="flex justify-between items-end mb-3">
-            <h2 className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+            <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
               Momentum
             </h2>
-            <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
               <span>Quiet</span>
               <div className="flex gap-0.5">
                 <div className="w-2.5 h-2.5 rounded-sm bg-primary/10" />
@@ -59,42 +65,43 @@ export default async function DashboardPage() {
               <span>Active</span>
             </div>
           </div>
-          <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm">
-            <div className="heatmap-grid">
-              {Array.from({ length: 80 }).map((_, i) => {
-                const date = subDays(endDate, 79 - i);
-                const activity = allActivities.find(
-                  (a: any) => a.date.toDateString() === date.toDateString()
-                );
+          <Card>
+            <CardContent className="p-5">
+              <div className="heatmap-grid">
+                {Array.from({ length: 80 }).map((_, i) => {
+                  const date = subDays(endDate, 79 - i);
+                  const activity = allActivities.find(
+                    (a) => a.date.toDateString() === date.toDateString()
+                  );
 
-                let opacity = 0.08;
-                if (activity) {
-                  if (activity.level === 'FULL') opacity = 1;
-                  else if (activity.level === 'PARTIAL') opacity = 0.4;
-                  else opacity = 0.12;
-                }
+                  let level = 'bg-primary/[0.08]';
+                  if (activity) {
+                    if (activity.level === 'FULL') level = 'bg-primary';
+                    else if (activity.level === 'PARTIAL') level = 'bg-primary/40';
+                    else level = 'bg-primary/[0.12]';
+                  }
 
-                return (
-                  <div
-                    key={i}
-                    className="aspect-square rounded-sm"
-                    style={{ backgroundColor: `rgba(19, 127, 236, ${opacity})` }}
-                  />
-                );
-              })}
-            </div>
-          </div>
+                  return (
+                    <div
+                      key={i}
+                      className={`aspect-square rounded-sm ${level}`}
+                    />
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
         </section>
 
         {/* CTA Section */}
         <section className="flex flex-col items-center mb-16">
-          <Link href="/journal">
-            <button className="bg-primary hover:bg-primary/90 text-white px-8 py-3.5 rounded-full font-medium shadow-lg shadow-primary/25 transition-all active:scale-95 flex items-center gap-3 text-base">
-              <span className="material-icons text-xl">edit</span>
+          <Button asChild size="lg" className="rounded-full px-8 py-6 text-base shadow-lg gap-3">
+            <Link href="/journal">
+              <Pencil className="h-5 w-5" />
               Capture a reflection
-            </button>
-          </Link>
-          <p className="mt-4 text-sm text-slate-400 italic">
+            </Link>
+          </Button>
+          <p className="mt-4 text-sm text-muted-foreground italic">
             Be honest with yourself today.
           </p>
         </section>
@@ -102,43 +109,40 @@ export default async function DashboardPage() {
         {/* Strategic Signals Section */}
         {allReframes.length > 0 && (
           <section>
-            <h2 className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-5">
+            <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-5">
               Recent Strategic Signals
             </h2>
             <div className="space-y-3">
-              {allReframes.slice(0, 3).map((reframe: any) => (
-                <div
-                  key={reframe.id}
-                  className="p-5 bg-white border border-slate-200/80 rounded-xl"
-                >
-                  <div className="flex items-start gap-3.5">
-                    <div className="mt-2 w-1.5 h-1.5 rounded-full bg-primary/50 shrink-0" />
-                    <div>
-                      <p className="text-[15px] leading-relaxed text-slate-600">
-                        {reframe.reason || reframe.suggestion}
-                      </p>
-                      <span className="block mt-2 text-[11px] font-medium text-slate-400 uppercase tracking-wide">
-                        {reframe.resolutionName}
-                      </span>
+              {allReframes.slice(0, 3).map((reframe) => (
+                <Card key={reframe.id}>
+                  <CardContent className="p-5">
+                    <div className="flex items-start gap-3.5">
+                      <div className="mt-2 w-1.5 h-1.5 rounded-full bg-primary/50 shrink-0" />
+                      <div>
+                        <p className="text-[15px] leading-relaxed text-muted-foreground">
+                          {reframe.reason || reframe.suggestion}
+                        </p>
+                        <span className="block mt-2 text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                          {reframe.resolutionName}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
             <div className="mt-8 text-center">
-              <Link
-                href="/resolutions"
-                className="text-sm font-medium text-primary/70 hover:text-primary transition-colors"
-              >
-                View all observations
-              </Link>
+              <Button variant="link" asChild>
+                <Link href="/resolutions">View all observations</Link>
+              </Button>
             </div>
           </section>
         )}
       </main>
 
-      <footer className="max-w-2xl mx-auto px-6 py-10 border-t border-slate-200/60 text-center">
-        <p className="text-xs text-slate-400 italic">
+      <footer className="max-w-2xl mx-auto px-6 py-10 text-center">
+        <Separator className="mb-10" />
+        <p className="text-xs text-muted-foreground italic">
           Compass is a space for momentum, not metrics.
         </p>
       </footer>

@@ -3,7 +3,11 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getJournalEntry, getAdjacentEntryIds } from '@/actions/journal';
 import { AppHeader } from '@/components/layout/AppHeader';
-import { ReanalyzeButton } from './ReanalyzeButton';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { ChevronLeft, ChevronRight, BookOpen, Printer, Share2, Pencil } from 'lucide-react';
 
 export default async function JournalEntryPage({
   params,
@@ -13,7 +17,7 @@ export default async function JournalEntryPage({
   const { id } = await params;
   const [entryResult, adjacentResult] = await Promise.all([
     getJournalEntry(id),
-    getAdjacentEntryIds(id).catch(() => ({ success: false, data: { previousId: null, nextId: null } })),
+    getAdjacentEntryIds(id).catch(() => null),
   ]);
 
   if (!entryResult.success || !entryResult.data) {
@@ -21,7 +25,9 @@ export default async function JournalEntryPage({
   }
 
   const entry = entryResult.data;
-  const { previousId, nextId } = (adjacentResult as any).data || { previousId: null, nextId: null };
+  const adjacentData = adjacentResult?.data ?? null;
+  const previousId = adjacentData?.previousId ?? null;
+  const nextId = adjacentData?.nextId ?? null;
   const latestInterpretation =
     entry.interpretations && entry.interpretations.length > 0
       ? entry.interpretations[0]
@@ -38,131 +44,128 @@ export default async function JournalEntryPage({
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 mb-4">
             {previousId ? (
-              <Link
-                href={`/journal/${previousId}`}
-                className="text-slate-400 hover:text-slate-600 transition-colors flex items-center"
-              >
-                <span className="material-icons text-lg">chevron_left</span>
-              </Link>
+              <Button variant="ghost" size="icon" asChild>
+                <Link href={`/journal/${previousId}`}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Link>
+              </Button>
             ) : (
-              <span className="text-slate-300 cursor-not-allowed flex items-center">
-                <span className="material-icons text-lg">chevron_left</span>
-              </span>
+              <Button variant="ghost" size="icon" disabled>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
             )}
-            <span className="text-xs font-medium text-primary uppercase tracking-wider bg-primary/10 px-3 py-1 rounded-full">
+            <Badge variant="outline" className="border-primary/30 text-primary bg-primary/10">
               Reflection
-            </span>
+            </Badge>
             {nextId ? (
-              <Link
-                href={`/journal/${nextId}`}
-                className="text-slate-400 hover:text-slate-600 transition-colors flex items-center"
-              >
-                <span className="material-icons text-lg">chevron_right</span>
-              </Link>
+              <Button variant="ghost" size="icon" asChild>
+                <Link href={`/journal/${nextId}`}>
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              </Button>
             ) : (
-              <span className="text-slate-300 cursor-not-allowed flex items-center">
-                <span className="material-icons text-lg">chevron_right</span>
-              </span>
+              <Button variant="ghost" size="icon" disabled>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             )}
           </div>
-          <h1 className="text-3xl font-light text-slate-800 mb-2">
+          <h1 className="text-3xl font-light mb-2">
             {entryDate.toLocaleDateString('en-US', {
               weekday: 'long',
               month: 'long',
               day: 'numeric',
             })}
           </h1>
-          <p className="text-sm text-slate-400 italic">
+          <p className="text-sm text-muted-foreground italic">
             A mindful review of your progress and momentum.
           </p>
         </div>
 
         {/* Main Entry Content */}
-        <div className="bg-white border border-slate-200/80 rounded-xl p-8 mb-10">
-          {/* Entry metadata */}
-          <div className="flex items-start justify-between mb-6">
-            <div>
-              <p className="text-[10px] font-bold text-primary uppercase tracking-wider mb-1">
-                To Myself
-              </p>
-              <h2 className="text-lg font-medium text-slate-800 italic">
-                Honest Momentum Report
-              </h2>
-            </div>
-            {latestInterpretation && (
-              <div className="text-right">
-                <p className="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Status</p>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-green-500" />
-                  <span className="text-xs font-medium text-green-600">On Track</span>
-                </div>
+        <Card className="mb-10">
+          <CardContent className="p-8">
+            {/* Entry metadata */}
+            <div className="flex items-start justify-between mb-6">
+              <div>
+                <p className="text-[10px] font-bold text-primary uppercase tracking-wider mb-1">
+                  To Myself
+                </p>
+                <h2 className="text-lg font-medium italic">
+                  Honest Momentum Report
+                </h2>
               </div>
-            )}
-          </div>
+              {latestInterpretation && (
+                <div className="text-right">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Status</p>
+                  <Badge variant="default" className="bg-green-600">
+                    On Track
+                  </Badge>
+                </div>
+              )}
+            </div>
 
-          {/* Entry text */}
-          <div className="space-y-8">
-            <div>
-              <p className="text-base text-slate-600 leading-relaxed whitespace-pre-wrap">
+            {/* Entry text */}
+            <div className="space-y-8">
+              <p className="text-base text-muted-foreground leading-relaxed whitespace-pre-wrap">
                 {entry.rawText}
               </p>
             </div>
-          </div>
 
-          {/* AI Overall Observations */}
-          {latestInterpretation && (
-            <div className="mt-10 pt-8 border-t border-slate-200/60">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="material-icons text-primary text-lg">menu_book</span>
-                <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Overall Observations
-                </h3>
-              </div>
-              <div className="bg-primary/5 border-l-2 border-primary/30 p-5 rounded-r-lg">
-                <p className="text-sm text-slate-600 italic leading-relaxed">
-                  {latestInterpretation.narrativeSummary ||
-                    latestInterpretation.suggestedAdjustments?.[0] ||
-                    'Analysis pending...'}
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
+            {/* AI Overall Observations */}
+            {latestInterpretation && (
+              <>
+                <Separator className="my-8" />
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <BookOpen className="h-4 w-4 text-primary" />
+                    <h3 className="text-xs font-bold uppercase tracking-wider">
+                      Overall Observations
+                    </h3>
+                  </div>
+                  <div className="bg-accent/50 border-l-2 border-primary/30 p-5 rounded-r-lg">
+                    <p className="text-sm text-muted-foreground italic leading-relaxed">
+                      {latestInterpretation.suggestedAdjustments ||
+                        'Analysis pending...'}
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Action Buttons */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button className="text-sm text-slate-400 hover:text-slate-600 flex items-center gap-1.5 transition-colors">
-              <span className="material-icons text-base">print</span>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm">
+              <Printer className="h-4 w-4" />
               Print Memo
-            </button>
-            <button className="text-sm text-slate-400 hover:text-slate-600 flex items-center gap-1.5 transition-colors">
-              <span className="material-icons text-base">share</span>
+            </Button>
+            <Button variant="ghost" size="sm">
+              <Share2 className="h-4 w-4" />
               Export PDF
-            </button>
+            </Button>
           </div>
           <div className="flex items-center gap-3">
-            <Link
-              href="/journal"
-              className="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-300 rounded-lg hover:border-slate-400 transition-colors"
-            >
-              Archive
-            </Link>
-            <button className="bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5">
-              <span className="material-icons text-sm">edit</span>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/journal">Archive</Link>
+            </Button>
+            <Button size="sm">
+              <Pencil className="h-4 w-4" />
               Edit Memo
-            </button>
+            </Button>
           </div>
         </div>
 
         {/* Footer */}
-        <footer className="mt-16 text-center py-8 border-t border-slate-200/60">
+        <footer className="mt-16 text-center py-8">
+          <Separator className="mb-8" />
           <div className="flex items-center justify-center gap-2 mb-2">
-            <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
-              <span className="material-icons text-slate-400 text-sm">explore</span>
+            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+              <span className="material-icons text-muted-foreground text-sm">explore</span>
             </div>
           </div>
-          <p className="text-[10px] text-slate-400 uppercase tracking-widest">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
             Compass System - Reflection Protocol v2.1
           </p>
         </footer>

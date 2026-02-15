@@ -37,7 +37,16 @@ export async function getActiveReframes(resolutionId?: string) {
     });
 
     // Group by resolution for easier display
-    const reframesByResolution = interpretations.reduce((acc, interpretation) => {
+    type ReframeEntry = {
+      id: string;
+      type: (typeof interpretations)[number]['reframeType'];
+      reason: string | null;
+      suggestion: string | null;
+      detectedAt: Date;
+      entryId: string;
+    };
+
+    const reframesByResolution = interpretations.reduce<Record<string, ReframeEntry[]>>((acc, interpretation) => {
       interpretation.journalEntry.linkedResolutionIds.forEach((resId) => {
         if (!acc[resId]) {
           acc[resId] = [];
@@ -52,7 +61,7 @@ export async function getActiveReframes(resolutionId?: string) {
         });
       });
       return acc;
-    }, {} as Record<string, any[]>);
+    }, {});
 
     return { success: true, data: reframesByResolution };
   } catch (error) {

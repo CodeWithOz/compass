@@ -45,3 +45,7 @@ next-env.d.ts
 
 # Prisma
 prisma/migrations/**/migration_lock.toml
+
+# Worktree setup state
+.db-state
+.playwright-mcp/

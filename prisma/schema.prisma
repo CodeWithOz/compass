@@ -155,3 +155,30 @@ enum MomentumTrend {
   STABLE
   GROWING
 }
+
+model UserSettings {
+  id        String   @id @default(uuid())
+  userId    String   @unique @default("default") @map("user_id")
+
+  // AI Configuration
+  aiProvider       AIProviderType @default(CLAUDE) @map("ai_provider")
+  anthropicApiKey  String?        @map("anthropic_api_key")
+  openaiApiKey     String?        @map("openai_api_key")
+  geminiApiKey     String?        @map("gemini_api_key")
+
+  // System Preferences
+  experimentalPhases   Boolean @default(true) @map("experimental_phases")
+  hardMode             Boolean @default(false) @map("hard_mode")
+  reflectiveReminders  Boolean @default(true) @map("reflective_reminders")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("user_settings")
+}
+
+enum AIProviderType {
+  CLAUDE
+  OPENAI
+  GEMINI
+}

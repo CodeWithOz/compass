@@ -41,7 +41,7 @@ export default async function DashboardPage() {
     <>
       <AppHeader />
 
-      <main className="max-w-2xl mx-auto px-6 pb-24">
+      <main className="max-w-2xl mx-auto px-6 py-8 pb-24">
         {/* Activity Heatmap Section */}
         <section className="mb-14">
           <div className="flex justify-between items-end mb-3">

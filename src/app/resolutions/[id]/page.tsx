@@ -46,12 +46,21 @@ export default async function ResolutionDetailPage({
           <span className="material-icons text-lg">arrow_back</span>
           Overview
         </Link>
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-primary" />
-          <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
-            Active Reflection
-          </span>
-        </div>
+        {resolution.status === 'ACTIVE' ? (
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-primary" />
+            <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+              Active Reflection
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-slate-300" />
+            <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+              Archived
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Title & Purpose */}

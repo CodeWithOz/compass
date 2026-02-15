@@ -12,6 +12,8 @@ interface Resolution {
   purpose: string | null;
   constraints: string | null;
   successSignals: string | null;
+  targetDate: Date | null;
+  exitCriteria: string | null;
 }
 
 interface EditResolutionFormProps {
@@ -29,6 +31,8 @@ export function EditResolutionForm({ resolution }: EditResolutionFormProps) {
     type: resolution.type,
     constraints: resolution.constraints || '',
     successSignals: resolution.successSignals || '',
+    targetDate: resolution.targetDate ? new Date(resolution.targetDate).toISOString().split('T')[0] : '',
+    exitCriteria: resolution.exitCriteria || '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,6 +48,8 @@ export function EditResolutionForm({ resolution }: EditResolutionFormProps) {
         type: formData.type,
         constraints: formData.constraints || undefined,
         successSignals: formData.successSignals || undefined,
+        targetDate: formData.targetDate ? new Date(formData.targetDate) : undefined,
+        exitCriteria: formData.exitCriteria || undefined,
       });
 
       if (!result.success) {
@@ -173,6 +179,45 @@ export function EditResolutionForm({ resolution }: EditResolutionFormProps) {
           disabled={isSubmitting}
         />
       </div>
+
+      {/* Target date - Only for MEASURABLE_OUTCOME */}
+      {formData.type === 'MEASURABLE_OUTCOME' && (
+        <div>
+          <label htmlFor="targetDate" className="block text-sm text-slate-600 mb-2">
+            Target date <span className="text-red-500">*</span>
+          </label>
+          <input
+            id="targetDate"
+            type="date"
+            value={formData.targetDate}
+            onChange={(e) => setFormData({ ...formData, targetDate: e.target.value })}
+            className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-primary transition-colors"
+            required={formData.type === 'MEASURABLE_OUTCOME'}
+            disabled={isSubmitting}
+          />
+          <p className="mt-1 text-xs text-slate-500">
+            When do you aim to achieve this outcome?
+          </p>
+        </div>
+      )}
+
+      {/* Exit criteria - Optional for EXPLORATORY_TRACK */}
+      {formData.type === 'EXPLORATORY_TRACK' && (
+        <div>
+          <label htmlFor="exitCriteria" className="block text-sm text-slate-600 mb-2">
+            Exit criteria (optional)
+          </label>
+          <textarea
+            id="exitCriteria"
+            value={formData.exitCriteria}
+            onChange={(e) => setFormData({ ...formData, exitCriteria: e.target.value })}
+            rows={3}
+            className="w-full px-4 py-3 border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 leading-relaxed focus:outline-none focus:border-primary transition-colors resize-none"
+            placeholder="How will you know when it's time to move on from this exploration?"
+            disabled={isSubmitting}
+          />
+        </div>
+      )}
 
       {/* Error message */}
       {error && (

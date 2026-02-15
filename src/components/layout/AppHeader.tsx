@@ -76,17 +76,17 @@ export function AppHeader() {
           />
 
           {/* Drawer */}
-          <div className="fixed top-0 right-0 bottom-0 w-64 bg-white shadow-xl z-30 md:hidden">
-            <div className="p-4">
+          <div className="fixed top-0 right-0 bottom-0 w-64 bg-white shadow-xl z-30 md:hidden flex flex-col">
+            <div className="px-4 py-4 flex items-center justify-end border-b border-slate-200">
               <button
                 onClick={() => setMobileMenuOpen(false)}
-                className="ml-auto flex items-center justify-center w-10 h-10 rounded-full hover:bg-slate-100 transition-colors"
+                className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-slate-100 transition-colors"
                 aria-label="Close menu"
               >
                 <X className="h-5 w-5 text-slate-600" />
               </button>
             </div>
-            <nav className="flex flex-col gap-1 px-4 pt-8">
+            <nav className="flex-1 flex flex-col gap-1 px-4 pt-4 overflow-y-auto">
               {navItems.map((item) => (
                 <Link
                   key={item.href}

@@ -29,6 +29,7 @@ model Resolution {
   currentPhaseId  String?   @map("current_phase_id")
 
   createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
   dailyActivities DailyActivity[]
   weeklySummaries WeeklySummary[]

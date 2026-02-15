@@ -108,42 +108,48 @@ export function EditResolutionForm({ resolution }: EditResolutionFormProps) {
         <label className="block text-sm text-slate-600 mb-3">
           What kind of resolution is this?
         </label>
-        <div className="flex flex-col sm:flex-row gap-4">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="radio"
-              name="type"
-              value="MEASURABLE_OUTCOME"
-              checked={formData.type === 'MEASURABLE_OUTCOME'}
-              onChange={(e) => setFormData({ ...formData, type: e.target.value as ResolutionType })}
-              className="w-4 h-4 text-primary focus:ring-primary"
-              disabled={isSubmitting}
-            />
-            <span className="text-sm text-slate-700">Outcome-oriented</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <label className="flex-1 cursor-pointer">
             <input
               type="radio"
               name="type"
               value="HABIT_BUNDLE"
               checked={formData.type === 'HABIT_BUNDLE'}
               onChange={(e) => setFormData({ ...formData, type: e.target.value as ResolutionType })}
-              className="w-4 h-4 text-primary focus:ring-primary"
+              className="sr-only peer"
               disabled={isSubmitting}
             />
-            <span className="text-sm text-slate-700">Habit-oriented</span>
+            <div className="px-4 py-2.5 text-center rounded-lg border-2 transition-colors peer-checked:bg-primary/10 peer-checked:border-primary peer-checked:text-primary border-slate-300 text-slate-600 hover:border-slate-400">
+              Habit
+            </div>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer">
+          <label className="flex-1 cursor-pointer">
+            <input
+              type="radio"
+              name="type"
+              value="MEASURABLE_OUTCOME"
+              checked={formData.type === 'MEASURABLE_OUTCOME'}
+              onChange={(e) => setFormData({ ...formData, type: e.target.value as ResolutionType })}
+              className="sr-only peer"
+              disabled={isSubmitting}
+            />
+            <div className="px-4 py-2.5 text-center rounded-lg border-2 transition-colors peer-checked:bg-primary/10 peer-checked:border-primary peer-checked:text-primary border-slate-300 text-slate-600 hover:border-slate-400">
+              Achievement
+            </div>
+          </label>
+          <label className="flex-1 cursor-pointer">
             <input
               type="radio"
               name="type"
               value="EXPLORATORY_TRACK"
               checked={formData.type === 'EXPLORATORY_TRACK'}
               onChange={(e) => setFormData({ ...formData, type: e.target.value as ResolutionType })}
-              className="w-4 h-4 text-primary focus:ring-primary"
+              className="sr-only peer"
               disabled={isSubmitting}
             />
-            <span className="text-sm text-slate-700">Exploratory</span>
+            <div className="px-4 py-2.5 text-center rounded-lg border-2 transition-colors peer-checked:bg-primary/10 peer-checked:border-primary peer-checked:text-primary border-slate-300 text-slate-600 hover:border-slate-400">
+              Shift
+            </div>
           </label>
         </div>
       </div>

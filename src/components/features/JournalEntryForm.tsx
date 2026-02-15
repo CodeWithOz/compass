@@ -68,7 +68,7 @@ export function JournalEntryForm({
         onChange={(e) => setText(e.target.value)}
         placeholder="What's been happening?"
         rows={12}
-        className="w-full text-base text-slate-700 placeholder:text-slate-400 bg-transparent border-0 outline-none resize-none leading-relaxed"
+        className="w-full text-base text-slate-700 placeholder:text-slate-400 bg-white border border-slate-200/80 rounded-xl p-6 outline-none resize-none leading-relaxed focus:border-primary/30 transition-colors"
         disabled={isSubmitting}
       />
 

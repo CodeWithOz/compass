@@ -11,9 +11,10 @@ import { subDays } from 'date-fns';
 export default async function ResolutionDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const resolutionResult = await getResolution(params.id);
+  const { id } = await params;
+  const resolutionResult = await getResolution(id);
 
   if (!resolutionResult.success || !resolutionResult.data) {
     notFound();
@@ -25,8 +26,8 @@ export default async function ResolutionDetailPage({
   const startDate = subDays(endDate, 180);
 
   const [activityResult, entriesResult] = await Promise.all([
-    getDailyActivity(startDate, endDate, params.id).catch(() => ({ success: false, data: [] })),
-    getJournalEntries({ resolutionId: params.id, limit: 10 }).catch(() => ({ success: false, data: [] })),
+    getDailyActivity(startDate, endDate, id).catch(() => ({ success: false, data: [] })),
+    getJournalEntries({ resolutionId: id, limit: 10 }).catch(() => ({ success: false, data: [] })),
   ]);
 
   const activities = (activityResult as any).data || [];
@@ -199,12 +200,12 @@ export default async function ResolutionDetailPage({
         {resolution.status === 'ACTIVE' && (
           <>
             <ArchiveResolutionButton
-              resolutionId={params.id}
+              resolutionId={id}
               label={resolution.type === 'EXPLORATORY_TRACK' ? 'Exit' : 'Archive Resolution'}
             />
             <div className="flex items-center gap-3">
               <Link
-                href={`/resolutions/${params.id}/edit`}
+                href={`/resolutions/${id}/edit`}
                 className="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-300 rounded-lg hover:border-slate-400 transition-colors"
               >
                 Edit Detail

@@ -8,9 +8,10 @@ import { ReanalyzeButton } from './ReanalyzeButton';
 export default async function JournalEntryPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const entryResult = await getJournalEntry(params.id);
+  const { id } = await params;
+  const entryResult = await getJournalEntry(id);
 
   if (!entryResult.success || !entryResult.data) {
     notFound();

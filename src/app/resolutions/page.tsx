@@ -7,9 +7,10 @@ import type { ResolutionStatus } from '@prisma/client';
 export default async function ResolutionsPage({
   searchParams,
 }: {
-  searchParams: { status?: string };
+  searchParams: Promise<{ status?: string }>;
 }) {
-  const status = (searchParams.status as ResolutionStatus) || 'ACTIVE';
+  const { status: statusParam } = await searchParams;
+  const status = (statusParam as ResolutionStatus) || 'ACTIVE';
   const resolutionsResult = await getResolutions(status);
   const archivedResult = await getResolutions('ARCHIVED').catch(() => ({ success: false, data: [] }));
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { Compass } from 'lucide-react';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { ExportDataButton } from './ExportDataButton';
 
@@ -72,17 +73,11 @@ export default async function SettingsPage() {
               <label className="block text-sm font-semibold text-slate-800 mb-2">
                 Primary Model
               </label>
-              <div className="flex items-center gap-3">
-                <select className="px-4 py-2.5 text-sm border border-slate-300 rounded-lg bg-white focus:border-primary outline-none transition-colors">
-                  <option>GPT-4o (Recommended)</option>
-                  <option>Claude 3.5 Sonnet</option>
-                  <option>Claude 3 Opus</option>
-                </select>
-                <button className="px-4 py-2.5 text-sm font-medium text-slate-600 border border-slate-300 rounded-lg hover:border-slate-400 transition-colors flex items-center gap-1.5">
-                  <span className="material-icons text-sm">refresh</span>
-                  Test Connection
-                </button>
-              </div>
+              <select className="px-4 py-2.5 text-sm border border-slate-300 rounded-lg bg-white focus:border-primary outline-none transition-colors">
+                <option>Claude Sonnet 4.5 (Recommended)</option>
+                <option>GPT-5.2</option>
+                <option>Gemini 3 Pro</option>
+              </select>
             </div>
           </div>
         </section>
@@ -158,9 +153,7 @@ export default async function SettingsPage() {
         {/* Footer */}
         <footer className="text-center py-8 border-t border-slate-200/60">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">
-              <span className="material-icons text-white text-sm">explore</span>
-            </div>
+            <Compass className="h-5 w-5 text-primary" strokeWidth={1.5} />
           </div>
           <p className="text-xs text-slate-400 uppercase tracking-wider font-medium">
             Compass v1.0.0

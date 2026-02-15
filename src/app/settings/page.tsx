@@ -1,10 +1,15 @@
 import React from 'react';
-import Link from 'next/link';
 import { Compass } from 'lucide-react';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { ExportDataButton } from './ExportDataButton';
+import { AIConfigSection } from './AIConfigSection';
+import { SystemPreferencesSection } from './SystemPreferencesSection';
+import { getSettings } from '@/actions/settings';
 
 export default async function SettingsPage() {
+  // Load user settings
+  const { data: settings } = await getSettings();
+
   return (
     <>
       <AppHeader />
@@ -41,91 +46,24 @@ export default async function SettingsPage() {
           </div>
         </section>
 
-        {/* AI Configuration */}
-        <section className="mb-12">
-          <div className="flex items-center gap-2.5 mb-5">
-            <span className="material-icons text-slate-400 text-xl">psychology</span>
-            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
-              AI Configuration
-            </h3>
-          </div>
-          <div className="bg-white border border-slate-200/80 rounded-xl p-6 space-y-6">
-            <div>
-              <label className="block text-sm font-semibold text-slate-800 mb-2">
-                API Key
-              </label>
-              <div className="relative">
-                <input
-                  type="password"
-                  placeholder="sk-..."
-                  className="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg bg-white focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-colors"
-                  disabled
-                />
-                <button className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                  <span className="material-icons text-lg">visibility</span>
-                </button>
-              </div>
-              <p className="text-xs text-slate-400 mt-1.5">
-                Used for honest feedback generation and semantic analysis of reflections.
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-slate-800 mb-2">
-                Primary Model
-              </label>
-              <select className="px-4 py-2.5 text-sm border border-slate-300 rounded-lg bg-white focus:border-primary outline-none transition-colors">
-                <option>Claude Sonnet 4.5 (Recommended)</option>
-                <option>GPT-5.2</option>
-                <option>Gemini 3 Pro</option>
-              </select>
-            </div>
-          </div>
-        </section>
+        {/* AI Configuration - Now Interactive */}
+        {settings && (
+          <AIConfigSection
+            initialProvider={settings.aiProvider}
+            initialAnthropicKey={settings.anthropicApiKey}
+            initialOpenaiKey={settings.openaiApiKey}
+            initialGeminiKey={settings.geminiApiKey}
+          />
+        )}
 
-        {/* System Preferences */}
-        <section className="mb-12">
-          <div className="flex items-center gap-2.5 mb-5">
-            <span className="material-icons text-slate-400 text-xl">settings</span>
-            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
-              System Preferences
-            </h3>
-          </div>
-          <div className="bg-white border border-slate-200/80 rounded-xl divide-y divide-slate-200/60">
-            <div className="p-5 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-slate-800">Experimental Phases</p>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Enable quarterly season-based tracking shifts and momentum decaying.
-                </p>
-              </div>
-              <div className="w-11 h-6 bg-primary rounded-full relative cursor-pointer">
-                <div className="w-5 h-5 bg-white rounded-full absolute top-0.5 right-0.5 shadow-sm" />
-              </div>
-            </div>
-            <div className="p-5 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-slate-800">Hard Mode</p>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Stricter feedback loops. No missed days allowed without a full reflection reset.
-                </p>
-              </div>
-              <div className="w-11 h-6 bg-slate-300 rounded-full relative cursor-pointer">
-                <div className="w-5 h-5 bg-white rounded-full absolute top-0.5 left-0.5 shadow-sm" />
-              </div>
-            </div>
-            <div className="p-5 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-slate-800">Reflective Reminders</p>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Receive gentle nudges at 9:00 PM to close your daily loop.
-                </p>
-              </div>
-              <div className="w-11 h-6 bg-primary rounded-full relative cursor-pointer">
-                <div className="w-5 h-5 bg-white rounded-full absolute top-0.5 right-0.5 shadow-sm" />
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* System Preferences - Now Interactive */}
+        {settings && (
+          <SystemPreferencesSection
+            initialExperimentalPhases={settings.experimentalPhases}
+            initialHardMode={settings.hardMode}
+            initialReflectiveReminders={settings.reflectiveReminders}
+          />
+        )}
 
         {/* Danger Zone */}
         <section className="mb-12">

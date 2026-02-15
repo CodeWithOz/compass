@@ -31,15 +31,15 @@ export function ArchiveResolutionButton({
       const result = await archiveResolution(resolutionId);
 
       if (result.success) {
+        // Navigate to resolutions list after successful archive
         router.push('/resolutions');
-        router.refresh();
       } else {
         alert(result.error);
+        setIsArchiving(false);
       }
     } catch (error) {
       console.error('Error archiving resolution:', error);
       alert('Failed to archive resolution');
-    } finally {
       setIsArchiving(false);
     }
   };

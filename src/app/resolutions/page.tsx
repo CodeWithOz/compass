@@ -45,7 +45,7 @@ export default async function ResolutionsPage({
         {resolutions.length > 0 ? (
           <div className="space-y-4">
             {resolutions.map((resolution) => (
-              <Link key={resolution.id} href={`/resolutions/${resolution.id}`}>
+              <Link key={resolution.id} href={`/resolutions/${resolution.id}`} className="block">
                 <div className="bg-white border border-slate-200/80 p-6 rounded-xl hover:border-primary/40 transition-all cursor-pointer">
                   <div className="flex justify-between items-start mb-3">
                     <h2 className="text-lg font-semibold text-slate-800">
@@ -113,7 +113,7 @@ export default async function ResolutionsPage({
             </div>
             <div className="space-y-4">
               {archived.map((resolution: any) => (
-                <Link key={resolution.id} href={`/resolutions/${resolution.id}`}>
+                <Link key={resolution.id} href={`/resolutions/${resolution.id}`} className="block">
                   <div className="bg-white/60 border border-dashed border-slate-300 p-6 rounded-xl opacity-75 hover:opacity-100 transition-all cursor-pointer">
                     <div className="flex justify-between items-start mb-3">
                       <h2 className="text-lg font-medium text-slate-500">

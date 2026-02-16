@@ -1,7 +1,8 @@
 import { generateObject } from 'ai';
 import { z } from 'zod';
 import { prisma } from '@/lib/db/client';
-import { getAIModel, validateProviderConfig, type AIProvider } from './providers';
+import { getAIModel, validateProviderConfig, providerTypeToProvider, type AIProvider } from './providers';
+import { getCurrentProvider, getProviderApiKey } from '@/actions/settings';
 import {
   getJournalAnalysisSystemPrompt,
   getJournalAnalysisUserPrompt,
@@ -13,12 +14,12 @@ import type { ActivityLevel, MomentumSignal, ReframeType } from '@prisma/client'
 /**
  * Zod schema for AI analysis response
  * Ensures type-safe parsing of AI output
+ *
+ * Note: Using a more permissive schema for detectedActivity to ensure
+ * compatibility with all AI providers (OpenAI has stricter requirements)
  */
 const AIAnalysisSchema = z.object({
-  detectedActivity: z.record(
-    z.string(),
-    z.enum(['NONE', 'PARTIAL', 'FULL'])
-  ),
+  detectedActivity: z.object({}).passthrough().catch({}),
   momentumSignal: z.enum(['NONE', 'LOW', 'MEDIUM', 'HIGH']),
   riskFlags: z.array(z.string()),
   suggestedAdjustments: z.string().nullable(),
@@ -50,11 +51,22 @@ export async function analyzeJournalEntry(
   provider?: AIProvider
 ): Promise<void> {
   try {
-    // Use default provider if not specified
-    const selectedProvider = provider || (process.env.DEFAULT_AI_PROVIDER as AIProvider) || 'claude';
+    // Get provider from settings if not specified
+    let selectedProvider: AIProvider;
+    if (provider) {
+      selectedProvider = provider;
+    } else {
+      // Get from user settings or fallback to env var
+      const providerType = await getCurrentProvider();
+      selectedProvider = providerTypeToProvider(providerType);
+    }
+
+    // Get API key from settings or env vars
+    const providerType = selectedProvider.toUpperCase() as 'CLAUDE' | 'OPENAI' | 'GEMINI';
+    const apiKey = await getProviderApiKey(providerType);
 
     // Validate provider configuration
-    validateProviderConfig(selectedProvider);
+    validateProviderConfig(selectedProvider, apiKey || undefined);
 
     // Fetch the journal entry
     const journalEntry = await prisma.journalEntry.findUnique({
@@ -94,8 +106,8 @@ export async function analyzeJournalEntry(
       currentPhase: resolution.currentPhase,
     }));
 
-    // Get AI model
-    const model = getAIModel(selectedProvider);
+    // Get AI model with custom API key if available
+    const model = getAIModel(selectedProvider, apiKey || undefined);
 
     // Generate analysis with retry logic
     let analysisResult: AIAnalysisResponse | null = null;
@@ -103,26 +115,41 @@ export async function analyzeJournalEntry(
     const maxAttempts = 3;
 
     while (attempts < maxAttempts) {
+      attempts++;
       try {
-        const { object } = await generateObject({
+        console.log(`🤖 Calling ${selectedProvider} API (attempt ${attempts}/${maxAttempts})...`);
+
+        // Note: GPT-5.2 is a reasoning model and doesn't support temperature
+        const generateOptions: any = {
           model,
           schema: AIAnalysisSchema,
           system: getJournalAnalysisSystemPrompt(),
           prompt: getJournalAnalysisUserPrompt(journalEntry.rawText, resolutionContexts),
-          temperature: 0.3, // Lower temperature for more consistent structured output
-        });
+        };
+
+        // Only set temperature for non-reasoning models
+        if (selectedProvider !== 'openai') {
+          generateOptions.temperature = 0.3;
+        }
+
+        const { object } = await generateObject(generateOptions);
 
         analysisResult = object as AIAnalysisResponse;
+        console.log(`✓ AI analysis successful on attempt ${attempts}`);
         break;
       } catch (error) {
-        attempts++;
+        console.error(`✗ Attempt ${attempts}/${maxAttempts} failed:`, error instanceof Error ? error.message : 'Unknown error');
+
         if (attempts >= maxAttempts) {
           throw new Error(
             `AI analysis failed after ${maxAttempts} attempts: ${error instanceof Error ? error.message : 'Unknown error'}`
           );
         }
-        // Exponential backoff
-        await new Promise((resolve) => setTimeout(resolve, Math.pow(2, attempts) * 1000));
+
+        // Exponential backoff before next retry
+        const backoffMs = Math.pow(2, attempts) * 1000;
+        console.log(`⏳ Waiting ${backoffMs}ms before retry...`);
+        await new Promise((resolve) => setTimeout(resolve, backoffMs));
       }
     }
 

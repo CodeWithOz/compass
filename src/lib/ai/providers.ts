@@ -12,21 +12,22 @@ export type AIProvider = 'claude' | 'openai' | 'gemini';
  * Get the AI model for the specified provider
  *
  * @param provider - The AI provider to use
+ * @param apiKey - Optional custom API key (overrides env vars)
  * @returns The configured AI model
  */
-export function getAIModel(provider: AIProvider = 'claude') {
+export function getAIModel(provider: AIProvider = 'claude', apiKey?: string) {
   switch (provider) {
     case 'claude':
       // Claude Sonnet 4.5 - Most intelligent model, best for coding and complex agents
-      return anthropic('claude-sonnet-4-5-20250929');
+      return anthropic('claude-sonnet-4-5-20250929', apiKey ? { apiKey } : undefined);
 
     case 'openai':
       // GPT-5.2 - OpenAI's flagship model for coding and agentic tasks
-      return openai('gpt-5.2');
+      return openai('gpt-5.2', apiKey ? { apiKey } : undefined);
 
     case 'gemini':
       // Gemini 3 Pro - Google's state-of-the-art reasoning and multimodal model
-      return google('gemini-3-pro-preview');
+      return google('gemini-3-pro-preview', apiKey ? { apiKey } : undefined);
 
     default:
       throw new Error(`Unknown AI provider: ${provider}`);

@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getResolution } from '@/actions/resolutions';
-import { getDailyActivity } from '@/actions/analytics';
+import { getResolutionEntryCountsPerDay } from '@/actions/analytics';
 import { getLinkedJournalEntries } from '@/actions/journal';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,9 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Zap } from 'lucide-react';
 import { ArchiveResolutionButton } from './ArchiveResolutionButton';
-import { subDays, format } from 'date-fns';
+import { subDays } from 'date-fns';
 import { HeatmapChart } from '@/components/features/HeatmapChart';
-import type { HeatmapDay } from '@/components/features/HeatmapChart';
 
 export default async function ResolutionDetailPage({
   params,
@@ -31,18 +30,13 @@ export default async function ResolutionDetailPage({
   const endDate = new Date();
   const startDate = subDays(endDate, 180);
 
-  const [activityResult, linkedEntriesResult] = await Promise.all([
-    getDailyActivity(startDate, endDate, id).catch(() => null),
+  const [heatmapResult, linkedEntriesResult] = await Promise.all([
+    getResolutionEntryCountsPerDay(id, startDate, endDate).catch(() => null),
     getLinkedJournalEntries(id, 5).catch(() => null),
   ]);
 
-  const rawActivities = activityResult?.data ?? [];
+  const heatmapDays = heatmapResult?.data ?? [];
   const recentEntries = linkedEntriesResult?.data ?? [];
-
-  const heatmapDays: HeatmapDay[] = rawActivities.map((a) => ({
-    date: format(new Date(a.date), 'yyyy-MM-dd'),
-    level: a.activityLevel as HeatmapDay['level'],
-  }));
 
   return (
     <>
@@ -208,7 +202,7 @@ export default async function ResolutionDetailPage({
                   <Link href={`/resolutions/${id}/edit`}>Edit Detail</Link>
                 </Button>
                 <Button size="sm" asChild>
-                  <Link href="/resolutions">Exit View</Link>
+                  <Link href="/resolutions">Back to List</Link>
                 </Button>
               </div>
             </>

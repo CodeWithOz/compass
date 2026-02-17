@@ -1,46 +1,26 @@
 import React from 'react';
 import Link from 'next/link';
-import { getHeatmapData, getRecentSignals } from '@/actions/analytics';
+import { getEntryCountsPerDay, getRecentSignals } from '@/actions/analytics';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Pencil, AlertTriangle, TrendingUp, TrendingDown } from 'lucide-react';
-import { subDays, format } from 'date-fns';
+import { subDays } from 'date-fns';
 import { HeatmapChart } from '@/components/features/HeatmapChart';
-import type { HeatmapDay } from '@/components/features/HeatmapChart';
 
 export default async function DashboardPage() {
   const endDate = new Date();
   const startDate = subDays(endDate, 365);
 
   const [heatmapResult, signalsResult] = await Promise.all([
-    getHeatmapData(startDate, endDate).catch(() => null),
+    getEntryCountsPerDay(startDate, endDate).catch(() => null),
     getRecentSignals(5).catch(() => null),
   ]);
 
-  const heatmapData = heatmapResult?.data ?? null;
+  const heatmapDays = heatmapResult?.data ?? [];
   const recentSignals = signalsResult?.data ?? [];
-
-  // Merge all daily activities across resolutions, taking highest level per day
-  const activityMap = new Map<string, 'NONE' | 'PARTIAL' | 'FULL'>();
-  if (heatmapData) {
-    for (const item of heatmapData) {
-      for (const a of item.activities) {
-        const dateStr = format(new Date(a.date), 'yyyy-MM-dd');
-        const existing = activityMap.get(dateStr);
-        const rank = { NONE: 0, PARTIAL: 1, FULL: 2 } as const;
-        if (!existing || rank[a.level as keyof typeof rank] > rank[existing]) {
-          activityMap.set(dateStr, a.level as 'NONE' | 'PARTIAL' | 'FULL');
-        }
-      }
-    }
-  }
-  const heatmapDays: HeatmapDay[] = Array.from(activityMap.entries()).map(([date, level]) => ({
-    date,
-    level,
-  }));
 
   return (
     <>
@@ -65,7 +45,7 @@ export default async function DashboardPage() {
           </div>
           <Card>
             <CardContent className="p-4">
-              <HeatmapChart data={heatmapDays} weeks={20} />
+              <HeatmapChart data={heatmapDays} weeks={26} />
             </CardContent>
           </Card>
         </section>
@@ -133,7 +113,7 @@ export default async function DashboardPage() {
             </div>
             <div className="mt-6 text-center">
               <Button variant="link" asChild>
-                <Link href="/journal">View all reflections</Link>
+                <Link href="/journal#entries">View all reflections</Link>
               </Button>
             </div>
           </section>

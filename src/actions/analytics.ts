@@ -1,7 +1,7 @@
 'use server';
 
 import { prisma } from '@/lib/db/client';
-import { startOfWeek, startOfDay, endOfDay, addDays } from 'date-fns';
+import { startOfWeek, startOfDay, endOfDay, addDays, format } from 'date-fns';
 
 /**
  * Get weekly summary for a specific week and optional resolution
@@ -90,6 +90,78 @@ export async function getDailyActivity(
       success: false,
       error: error instanceof Error ? error.message : 'Failed to fetch daily activity',
     };
+  }
+}
+
+/**
+ * Get journal entry counts per day for the heatmap.
+ *
+ * Returns { date: "YYYY-MM-DD", count: number }[] over the given range.
+ */
+export async function getEntryCountsPerDay(startDate: Date, endDate: Date) {
+  try {
+    const entries = await prisma.journalEntry.findMany({
+      where: {
+        timestamp: { gte: startOfDay(startDate), lte: endOfDay(endDate) },
+      },
+      select: { timestamp: true },
+      orderBy: { timestamp: 'asc' },
+    });
+
+    const counts = new Map<string, number>();
+    for (const e of entries) {
+      const key = format(new Date(e.timestamp), 'yyyy-MM-dd');
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+
+    return {
+      success: true,
+      data: Array.from(counts.entries()).map(([date, count]) => ({ date, count })),
+    };
+  } catch (error) {
+    console.error('Error fetching entry counts per day:', error);
+    return { success: false, error: String(error) };
+  }
+}
+
+/**
+ * Get journal entry counts per day for a specific resolution.
+ *
+ * Counts entries that have AI interpretations with detected activity
+ * for the given resolution (PARTIAL or FULL).
+ */
+export async function getResolutionEntryCountsPerDay(
+  resolutionId: string,
+  startDate: Date,
+  endDate: Date
+) {
+  try {
+    const interpretations = await prisma.aIInterpretation.findMany({
+      where: {
+        detectedActivity: {
+          path: [resolutionId],
+          not: 'NONE',
+        },
+        createdAt: { gte: startOfDay(startDate), lte: endOfDay(endDate) },
+      },
+      include: {
+        journalEntry: { select: { timestamp: true } },
+      },
+    });
+
+    const counts = new Map<string, number>();
+    for (const interp of interpretations) {
+      const key = format(new Date(interp.journalEntry.timestamp), 'yyyy-MM-dd');
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+
+    return {
+      success: true,
+      data: Array.from(counts.entries()).map(([date, count]) => ({ date, count })),
+    };
+  } catch (error) {
+    console.error('Error fetching resolution entry counts:', error);
+    return { success: false, error: String(error) };
   }
 }
 
@@ -266,7 +338,6 @@ export async function getRecentSignals(limit = 5) {
           select: {
             id: true,
             timestamp: true,
-            linkedResolutionIds: true,
           },
         },
       },
@@ -296,8 +367,17 @@ export async function getRecentSignals(limit = 5) {
     const signals: Signal[] = [];
 
     for (const interp of interpretations) {
-      const linkedResIds = interp.journalEntry.linkedResolutionIds;
-      const primaryResName = linkedResIds.length > 0 ? resolutionMap.get(linkedResIds[0]) ?? null : null;
+      // Derive resolution name from AI-detected activity (not user-linked IDs)
+      const detected = interp.detectedActivity as Record<string, string> | null;
+      let primaryResName: string | null = null;
+      if (detected && typeof detected === 'object') {
+        for (const [resId, level] of Object.entries(detected)) {
+          if (level !== 'NONE' && resolutionMap.has(resId)) {
+            primaryResName = resolutionMap.get(resId) ?? null;
+            break;
+          }
+        }
+      }
 
       if (interp.reframeType && interp.reframeSuggestion) {
         signals.push({

@@ -79,16 +79,23 @@ export function validateProviderConfig(provider: AIProvider, apiKey?: string): v
   }
 }
 
+const VALID_AI_PROVIDERS: AIProvider[] = ['claude', 'openai', 'gemini'];
+
 /**
  * Convert AIProviderType enum to AIProvider string
  */
 export function providerTypeToProvider(type: AIProviderType): AIProvider {
-  return type.toLowerCase() as AIProvider;
+  const lower = type.toLowerCase();
+  if (!VALID_AI_PROVIDERS.includes(lower as AIProvider)) {
+    throw new Error(`Invalid AIProviderType: ${type}. Expected one of: ${VALID_AI_PROVIDERS.join(', ')}`);
+  }
+  return lower as AIProvider;
 }
 
 /**
  * Convert AIProvider string to AIProviderType enum
  */
 export function providerToProviderType(provider: AIProvider): AIProviderType {
-  return provider.toUpperCase() as AIProviderType;
+  const upper = provider.toUpperCase();
+  return upper as AIProviderType;
 }

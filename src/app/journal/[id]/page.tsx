@@ -158,15 +158,10 @@ export default async function JournalEntryPage({
         </div>
 
         {/* Footer */}
-        <footer className="mt-16 text-center py-8">
-          <Separator className="mb-8" />
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-              <span className="material-icons text-muted-foreground text-sm">explore</span>
-            </div>
-          </div>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
-            Compass System - Reflection Protocol v2.1
+        <footer className="mt-12 text-center pt-4 pb-2">
+          <Separator className="mb-6" />
+          <p className="text-xs text-muted-foreground italic">
+            Honest reflection is the foundation of direction.
           </p>
         </footer>
       </main>

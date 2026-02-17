@@ -28,7 +28,7 @@ export default async function ResolutionsPage({
     <>
       <AppHeader />
 
-      <main className="max-w-3xl mx-auto px-6 py-12">
+      <main className="max-w-3xl mx-auto px-6 py-10 pb-10">
         <header className="mb-10 flex items-end justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight mb-2">
@@ -159,14 +159,9 @@ export default async function ResolutionsPage({
         )}
 
         {/* Footer */}
-        <footer className="mt-24 text-center pt-10 pb-20">
-          <Separator className="mb-10" />
+        <footer className="mt-16 text-center pt-6 pb-2">
+          <Separator className="mb-6" />
           <p className="text-muted-foreground text-sm italic">&quot;Direction is more important than speed.&quot;</p>
-          <div className="flex justify-center gap-2 mt-6">
-            <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
-            <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30" />
-            <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30" />
-          </div>
         </footer>
       </main>
     </>

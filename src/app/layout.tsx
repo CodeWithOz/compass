@@ -20,12 +20,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link
-          href="https://fonts.googleapis.com/icon?family=Material+Icons"
-          rel="stylesheet"
-        />
-      </head>
       <body className={`${geistSans.variable} antialiased min-h-screen bg-background text-foreground`}>
         <ThemeProvider>
           {children}

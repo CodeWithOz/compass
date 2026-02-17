@@ -107,14 +107,10 @@ export async function getJournalEntries(options?: {
             has: resolutionId,
           },
         }),
-        ...(startDate && {
+        ...((startDate || endDate) && {
           timestamp: {
-            gte: startDate,
-          },
-        }),
-        ...(endDate && {
-          timestamp: {
-            lte: endDate,
+            ...(startDate && { gte: startDate }),
+            ...(endDate && { lte: endDate }),
           },
         }),
       },
@@ -296,7 +292,14 @@ export async function getLinkedJournalEntries(resolutionId: string, limit = 5) {
       take: limit,
     });
 
-    const entries = interpretations.map((interp) => interp.journalEntry);
+    const seen = new Set<string>();
+    const entries = interpretations
+      .map((interp) => interp.journalEntry)
+      .filter((entry) => {
+        if (seen.has(entry.id)) return false;
+        seen.add(entry.id);
+        return true;
+      });
 
     return { success: true, data: entries };
   } catch (error) {

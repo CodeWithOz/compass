@@ -10,8 +10,8 @@ const CreatePhaseSchema = z.object({
   resolutionId: z.string(),
   name: z.string().min(1, 'Phase name is required'),
   description: z.string().optional(),
-  startDate: z.date(),
-  endDate: z.date().optional(),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date().optional(),
   expectedFrequency: z.string().optional(), // e.g., "daily", "3x/week"
   intensityLevel: z.number().min(1).max(5).optional(), // 1-5 scale
 });
@@ -253,18 +253,18 @@ export async function deletePhase(id: string) {
       throw new Error('Phase not found');
     }
 
-    // If phase is active, deactivate it first
-    if (phase.activeResolutions.length > 0) {
-      await prisma.resolution.updateMany({
-        where: { currentPhaseId: id },
-        data: { currentPhaseId: null },
-      });
-    }
-
-    // Delete phase
-    await prisma.resolutionPhase.delete({
-      where: { id },
-    });
+    // Atomically deactivate resolutions and delete the phase
+    await prisma.$transaction([
+      ...(phase.activeResolutions.length > 0
+        ? [prisma.resolution.updateMany({
+            where: { currentPhaseId: id },
+            data: { currentPhaseId: null },
+          })]
+        : []),
+      prisma.resolutionPhase.delete({
+        where: { id },
+      }),
+    ]);
 
     return { success: true };
   } catch (error) {

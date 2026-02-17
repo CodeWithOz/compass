@@ -151,6 +151,7 @@ export async function getResolutionEntryCountsPerDay(
 
     const counts = new Map<string, number>();
     for (const interp of interpretations) {
+      if (!interp.journalEntry?.timestamp) continue;
       const key = format(new Date(interp.journalEntry.timestamp), 'yyyy-MM-dd');
       counts.set(key, (counts.get(key) ?? 0) + 1);
     }
@@ -300,7 +301,7 @@ export async function getEngagementStats(
         recentEntries: recentEntries.map((entry) => ({
           id: entry.id,
           timestamp: entry.timestamp,
-          preview: entry.rawText.substring(0, 100),
+          preview: (entry.rawText ?? '').substring(0, 100),
         })),
       },
     };
@@ -392,9 +393,10 @@ export async function getRecentSignals(limit = 5) {
       }
 
       if (interp.riskFlags.length > 0) {
-        for (const flag of interp.riskFlags) {
+        for (let i = 0; i < interp.riskFlags.length; i++) {
+          const flag = interp.riskFlags[i];
           signals.push({
-            id: `${interp.id}-risk-${flag.substring(0, 10)}`,
+            id: `${interp.id}-risk-${i}-${flag.substring(0, 10)}`,
             type: 'risk',
             text: flag,
             resolutionName: primaryResName,

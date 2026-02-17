@@ -47,7 +47,7 @@ function levelText(count: number): string {
  * Fixed-size squares (10px) with scrollable overflow on narrow viewports.
  * Week starts on Sunday. Tooltips rendered as a portal to avoid clipping.
  */
-export function HeatmapChart({ data, weeks = 26 }: HeatmapChartProps) {
+export function HeatmapChart({ data, weeks = 52 }: HeatmapChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [tooltip, setTooltip] = useState<{
     text: string;

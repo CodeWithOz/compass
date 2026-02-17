@@ -143,7 +143,7 @@ export default async function ResolutionDetailPage({
           </div>
           <Card>
             <CardContent className="p-4">
-              <HeatmapChart data={heatmapDays} weeks={26} />
+              <HeatmapChart data={heatmapDays} weeks={52} />
             </CardContent>
           </Card>
         </section>

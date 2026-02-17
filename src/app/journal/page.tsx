@@ -41,7 +41,7 @@ export default async function JournalPage() {
 
         {/* Recent Entries */}
         {entries.length > 0 && (
-          <section className="mt-16">
+          <section id="entries" className="mt-16">
             <div className="flex items-center gap-4 mb-6">
               <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest whitespace-nowrap">
                 Recent Entries

@@ -129,28 +129,40 @@ export default async function WeeklyReviewPage({
                               </div>
                             </div>
 
-                            {/* Activity bar */}
-                            <div className="flex gap-1 mb-3">
-                              {Array.from({ length: 7 }).map((_, i) => {
-                                let bgClass = 'bg-primary/[0.08]';
-                                if (i < review.fullDays) bgClass = 'bg-primary';
-                                else if (i < review.fullDays + review.partialDays) bgClass = 'bg-primary/40';
-                                return (
-                                  <div
-                                    key={i}
-                                    className={`h-1.5 flex-1 rounded-full ${bgClass}`}
-                                  />
-                                );
-                              })}
+                            {/* Activity bar with legend */}
+                            <div className="mb-3">
+                              <div className="flex gap-1 mb-1.5">
+                                {Array.from({ length: 7 }).map((_, i) => {
+                                  let bgClass = 'bg-primary/[0.08]';
+                                  if (i < review.fullDays) bgClass = 'bg-primary';
+                                  else if (i < review.fullDays + review.partialDays) bgClass = 'bg-primary/40';
+                                  return (
+                                    <div
+                                      key={i}
+                                      className={`h-1.5 flex-1 rounded-full ${bgClass}`}
+                                    />
+                                  );
+                                })}
+                              </div>
+                              <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                                <div className="flex items-center gap-1">
+                                  <div className="w-2 h-2 rounded-full bg-primary" />
+                                  <span>Full ({review.fullDays}d)</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <div className="w-2 h-2 rounded-full bg-primary/40" />
+                                  <span>Partial ({review.partialDays}d)</span>
+                                </div>
+                              </div>
                             </div>
 
                             {/* Risk flags */}
                             {review.riskFlags.length > 0 && (
-                              <div className="mt-3 space-y-1">
+                              <div className="mt-3 space-y-1.5">
                                 {review.riskFlags.map((flag, i) => (
-                                  <div key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
-                                    <AlertTriangle className="h-3 w-3 text-amber-500 mt-0.5 shrink-0" />
-                                    <span className="line-clamp-1">{flag}</span>
+                                  <div key={i} className="flex items-start gap-2 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30 rounded-md px-3 py-2">
+                                    <AlertTriangle className="h-3.5 w-3.5 text-amber-500 mt-0.5 shrink-0" />
+                                    <span className="text-xs text-muted-foreground line-clamp-2">{flag}</span>
                                   </div>
                                 ))}
                               </div>
@@ -158,11 +170,12 @@ export default async function WeeklyReviewPage({
 
                             {/* Adjustments */}
                             {review.adjustments.length > 0 && (
-                              <div className="mt-2">
+                              <div className="mt-2 space-y-1.5">
                                 {review.adjustments.map((adj, i) => (
-                                  <p key={i} className="text-xs text-muted-foreground italic line-clamp-2">
-                                    {adj}
-                                  </p>
+                                  <div key={i} className="flex items-start gap-2 bg-accent/50 border-l-2 border-primary/30 rounded-r-md px-3 py-2">
+                                    <TrendingUp className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
+                                    <p className="text-xs text-muted-foreground italic line-clamp-2">{adj}</p>
+                                  </div>
                                 ))}
                               </div>
                             )}

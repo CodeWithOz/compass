@@ -94,7 +94,7 @@ export default async function SettingsPage() {
             Compass v1.0.0
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            Designed for honest momentum. Locally stored, globally focused.
+            Designed for honest momentum.
           </p>
         </footer>
       </main>

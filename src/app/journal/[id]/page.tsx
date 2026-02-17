@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { ChevronLeft, ChevronRight, BookOpen, Printer, Share2, Pencil } from 'lucide-react';
+import { ChevronLeft, ChevronRight, BookOpen, ArrowLeft } from 'lucide-react';
 
 export default async function JournalEntryPage({
   params,
@@ -134,27 +134,14 @@ export default async function JournalEntryPage({
           </CardContent>
         </Card>
 
-        {/* Action Buttons */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm">
-              <Printer className="h-4 w-4" />
-              Print Memo
-            </Button>
-            <Button variant="ghost" size="sm">
-              <Share2 className="h-4 w-4" />
-              Export PDF
-            </Button>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/journal">Archive</Link>
-            </Button>
-            <Button size="sm">
-              <Pencil className="h-4 w-4" />
-              Edit Memo
-            </Button>
-          </div>
+        {/* Back navigation */}
+        <div className="flex items-center justify-start mt-2">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/journal">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Journal
+            </Link>
+          </Button>
         </div>
 
         {/* Footer */}

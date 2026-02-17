@@ -148,12 +148,12 @@ export default async function ResolutionDetailPage({
           </Card>
         </section>
 
-        {/* Observed Patterns */}
+        {/* Related Entries */}
         {recentEntries.length > 0 && (
           <section className="mb-12">
             <div className="flex items-center gap-2 mb-5">
               <Zap className="h-5 w-5 text-primary" />
-              <h2 className="text-lg font-bold tracking-tight">Observed Patterns</h2>
+              <h2 className="text-lg font-bold tracking-tight">Related Entries</h2>
             </div>
             <div className="space-y-3">
               {recentEntries.slice(0, 3).map((entry) => (

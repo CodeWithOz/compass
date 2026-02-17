@@ -130,31 +130,19 @@ export default async function WeeklyReviewPage({
                               </div>
                             </div>
 
-                            {/* Activity bar with legend */}
-                            <div className="mb-3">
-                              <div className="flex gap-1 mb-1.5">
-                                {Array.from({ length: 7 }).map((_, i) => {
-                                  let bgClass = 'bg-primary/[0.08]';
-                                  if (i < review.fullDays) bgClass = 'bg-primary';
-                                  else if (i < review.fullDays + review.partialDays) bgClass = 'bg-primary/40';
-                                  return (
-                                    <div
-                                      key={i}
-                                      className={`h-1.5 flex-1 rounded-full ${bgClass}`}
-                                    />
-                                  );
-                                })}
-                              </div>
-                              <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
-                                <div className="flex items-center gap-1">
-                                  <div className="w-2 h-2 rounded-full bg-primary" />
-                                  <span>Full ({review.fullDays}d)</span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <div className="w-2 h-2 rounded-full bg-primary/40" />
-                                  <span>Partial ({review.partialDays}d)</span>
-                                </div>
-                              </div>
+                            {/* Activity bar */}
+                            <div className="flex gap-1 mb-3">
+                              {Array.from({ length: 7 }).map((_, i) => {
+                                let bgClass = 'bg-primary/[0.08]';
+                                if (i < review.fullDays) bgClass = 'bg-primary';
+                                else if (i < review.fullDays + review.partialDays) bgClass = 'bg-primary/40';
+                                return (
+                                  <div
+                                    key={i}
+                                    className={`h-1.5 flex-1 rounded-full ${bgClass}`}
+                                  />
+                                );
+                              })}
                             </div>
 
                             {/* Risk flags */}

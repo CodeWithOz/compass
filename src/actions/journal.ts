@@ -289,7 +289,8 @@ export async function getLinkedJournalEntries(resolutionId: string, limit = 5) {
       orderBy: {
         createdAt: 'desc',
       },
-      take: limit,
+      // Fetch more candidates than limit to account for duplicates across entries
+      take: limit * 3,
     });
 
     const seen = new Set<string>();
@@ -299,7 +300,8 @@ export async function getLinkedJournalEntries(resolutionId: string, limit = 5) {
         if (seen.has(entry.id)) return false;
         seen.add(entry.id);
         return true;
-      });
+      })
+      .slice(0, limit);
 
     return { success: true, data: entries };
   } catch (error) {

@@ -21,7 +21,7 @@ const navItems = [
   { href: '/', label: 'Dashboard' },
   { href: '/journal', label: 'Journal' },
   { href: '/resolutions', label: 'Resolutions' },
-  { href: '/review', label: 'Reflections' },
+  { href: '/review', label: 'Review' },
   { href: '/settings', label: 'Settings' },
 ];
 

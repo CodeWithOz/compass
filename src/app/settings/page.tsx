@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ExportDataButton } from './ExportDataButton';
 import { AIConfigSection } from './AIConfigSection';
-import { SystemPreferencesSection } from './SystemPreferencesSection';
 import { getSettings } from '@/actions/settings';
 import { FolderOpen, AlertTriangle } from 'lucide-react';
 
@@ -17,12 +16,12 @@ export default async function SettingsPage() {
     <>
       <AppHeader />
 
-      <main className="max-w-3xl mx-auto px-6 py-10">
+      <main className="max-w-3xl mx-auto px-6 py-10 pb-10">
         {/* Title */}
         <div className="mb-10">
           <h2 className="text-2xl font-bold tracking-tight mb-2">Compass Configuration</h2>
           <p className="text-muted-foreground leading-relaxed">
-            Manage your personal data, AI integrations, and system-wide tracking preferences.
+            Manage your personal data and AI integrations.
             All data is processed locally where possible.
           </p>
         </div>
@@ -44,10 +43,8 @@ export default async function SettingsPage() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-3">
-                <ExportDataButton />
-                <Button variant="outline" size="sm" className="text-primary border-primary/30 hover:bg-primary/5 hover:text-primary">
-                  Export as JSON
-                </Button>
+                <ExportDataButton format="csv" />
+                <ExportDataButton format="json" />
               </div>
             </CardContent>
           </Card>
@@ -63,17 +60,8 @@ export default async function SettingsPage() {
           />
         )}
 
-        {/* System Preferences */}
-        {settings && (
-          <SystemPreferencesSection
-            initialExperimentalPhases={settings.experimentalPhases}
-            initialHardMode={settings.hardMode}
-            initialReflectiveReminders={settings.reflectiveReminders}
-          />
-        )}
-
         {/* Danger Zone */}
-        <section className="mb-12">
+        <section className="mb-8">
           <Separator className="mb-8" />
           <div className="flex items-center gap-2 mb-5">
             <AlertTriangle className="h-5 w-5 text-destructive" />
@@ -97,8 +85,8 @@ export default async function SettingsPage() {
         </section>
 
         {/* Footer */}
-        <footer className="text-center py-8">
-          <Separator className="mb-8" />
+        <footer className="text-center pt-4 pb-6">
+          <Separator className="mb-6" />
           <div className="flex items-center justify-center gap-2 mb-2">
             <Compass className="h-5 w-5 text-primary" strokeWidth={1.5} />
           </div>

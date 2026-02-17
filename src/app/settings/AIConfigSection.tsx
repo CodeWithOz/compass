@@ -88,49 +88,35 @@ export function AIConfigSection({
 
           {/* API Keys */}
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="anthropic-key">Anthropic API Key</Label>
-              <div className="relative">
-                <Input
-                  id="anthropic-key"
-                  type={showKeys ? 'text' : 'password'}
-                  placeholder="sk-ant-..."
-                  value={anthropicKey}
-                  onChange={(e) => setAnthropicKey(e.target.value)}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowKeys(!showKeys)}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
-                >
-                  {showKeys ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
-              </div>
-            </div>
+            <ApiKeyField
+              id="anthropic-key"
+              label="Anthropic API Key"
+              placeholder="sk-ant-..."
+              value={anthropicKey}
+              onChange={setAnthropicKey}
+              visible={showKeys}
+              onToggleVisibility={() => setShowKeys(!showKeys)}
+            />
 
-            <div className="space-y-2">
-              <Label htmlFor="openai-key">OpenAI API Key</Label>
-              <Input
-                id="openai-key"
-                type={showKeys ? 'text' : 'password'}
-                placeholder="sk-..."
-                value={openaiKey}
-                onChange={(e) => setOpenaiKey(e.target.value)}
-              />
-            </div>
+            <ApiKeyField
+              id="openai-key"
+              label="OpenAI API Key"
+              placeholder="sk-..."
+              value={openaiKey}
+              onChange={setOpenaiKey}
+              visible={showKeys}
+              onToggleVisibility={() => setShowKeys(!showKeys)}
+            />
 
-            <div className="space-y-2">
-              <Label htmlFor="gemini-key">Google AI API Key</Label>
-              <Input
-                id="gemini-key"
-                type={showKeys ? 'text' : 'password'}
-                placeholder="AIza..."
-                value={geminiKey}
-                onChange={(e) => setGeminiKey(e.target.value)}
-              />
-            </div>
+            <ApiKeyField
+              id="gemini-key"
+              label="Google AI API Key"
+              placeholder="AIza..."
+              value={geminiKey}
+              onChange={setGeminiKey}
+              visible={showKeys}
+              onToggleVisibility={() => setShowKeys(!showKeys)}
+            />
 
             <p className="text-xs text-muted-foreground">
               API keys are stored locally and used for journal analysis. You only need to provide a key for your selected provider.
@@ -160,5 +146,47 @@ export function AIConfigSection({
         </CardContent>
       </Card>
     </section>
+  );
+}
+
+function ApiKeyField({
+  id,
+  label,
+  placeholder,
+  value,
+  onChange,
+  visible,
+  onToggleVisibility,
+}: {
+  id: string;
+  label: string;
+  placeholder: string;
+  value: string;
+  onChange: (v: string) => void;
+  visible: boolean;
+  onToggleVisibility: () => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id}>{label}</Label>
+      <div className="relative">
+        <Input
+          id={id}
+          type={visible ? 'text' : 'password'}
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={onToggleVisibility}
+          className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+        >
+          {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        </Button>
+      </div>
+    </div>
   );
 }

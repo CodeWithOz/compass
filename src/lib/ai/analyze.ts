@@ -12,23 +12,29 @@ import {
 import type { ActivityLevel, MomentumSignal, ReframeType } from '@prisma/client';
 
 /**
- * Zod schema for AI analysis response
- * Ensures type-safe parsing of AI output
+ * Build a Zod schema for AI analysis response dynamically based on resolution IDs.
  *
- * Note: Using a more permissive schema for detectedActivity to ensure
- * compatibility with all AI providers (OpenAI has stricter requirements)
+ * OpenAI's structured output doesn't support z.record with propertyNames,
+ * so we build the detectedActivity shape from known resolution IDs.
  */
-const AIAnalysisSchema = z.object({
-  detectedActivity: z.object({}).passthrough().catch({}),
-  momentumSignal: z.enum(['NONE', 'LOW', 'MEDIUM', 'HIGH']),
-  riskFlags: z.array(z.string()),
-  suggestedAdjustments: z.string().nullable(),
-  reframeType: z
-    .enum(['MISALIGNMENT', 'STAGNATION', 'OVER_OPTIMIZATION', 'PHASE_MISMATCH', 'EXIT_SIGNAL'])
-    .nullable(),
-  reframeReason: z.string().nullable(),
-  reframeSuggestion: z.string().nullable(),
-});
+function buildAnalysisSchema(resolutionIds: string[]) {
+  const activityShape: Record<string, z.ZodType> = {};
+  for (const id of resolutionIds) {
+    activityShape[id] = z.enum(['NONE', 'PARTIAL', 'FULL']);
+  }
+
+  return z.object({
+    detectedActivity: z.object(activityShape),
+    momentumSignal: z.enum(['NONE', 'LOW', 'MEDIUM', 'HIGH']),
+    riskFlags: z.array(z.string()),
+    suggestedAdjustments: z.string().nullable(),
+    reframeType: z
+      .enum(['MISALIGNMENT', 'STAGNATION', 'OVER_OPTIMIZATION', 'PHASE_MISMATCH', 'EXIT_SIGNAL'])
+      .nullable(),
+    reframeReason: z.string().nullable(),
+    reframeSuggestion: z.string().nullable(),
+  });
+}
 
 /**
  * Analyze a journal entry using AI
@@ -101,13 +107,17 @@ export async function analyzeJournalEntry(
     }
 
     // Prepare resolution context
-    const resolutionContexts: ResolutionContext[] = resolutions.map((resolution: any) => ({
+    const resolutionContexts: ResolutionContext[] = resolutions.map((resolution) => ({
       resolution,
       currentPhase: resolution.currentPhase,
     }));
 
     // Get AI model with custom API key if available
     const model = getAIModel(selectedProvider, apiKey || undefined);
+
+    // Build schema dynamically from known resolution IDs
+    const resolutionIds = resolutions.map((r) => r.id);
+    const schema = buildAnalysisSchema(resolutionIds);
 
     // Generate analysis with retry logic
     let analysisResult: AIAnalysisResponse | null = null;
@@ -119,10 +129,9 @@ export async function analyzeJournalEntry(
       try {
         console.log(`🤖 Calling ${selectedProvider} API (attempt ${attempts}/${maxAttempts})...`);
 
-        // Note: GPT-5.2 is a reasoning model and doesn't support temperature
-        const generateOptions: any = {
+        const generateOptions: Parameters<typeof generateObject>[0] = {
           model,
-          schema: AIAnalysisSchema,
+          schema,
           system: getJournalAnalysisSystemPrompt(),
           prompt: getJournalAnalysisUserPrompt(journalEntry.rawText, resolutionContexts),
         };
@@ -159,7 +168,7 @@ export async function analyzeJournalEntry(
     }
 
     // Store AI interpretation in database
-    const interpretation = await prisma.aIInterpretation.create({
+    await prisma.aIInterpretation.create({
       data: {
         journalEntryId,
         provider: selectedProvider,

@@ -1,6 +1,6 @@
-import { anthropic } from '@ai-sdk/anthropic';
-import { openai } from '@ai-sdk/openai';
-import { google } from '@ai-sdk/google';
+import { createAnthropic } from '@ai-sdk/anthropic';
+import { createOpenAI } from '@ai-sdk/openai';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import type { AIProviderType } from '@prisma/client';
 
 /**
@@ -11,23 +11,28 @@ export type AIProvider = 'claude' | 'openai' | 'gemini';
 /**
  * Get the AI model for the specified provider
  *
+ * Uses factory functions (createAnthropic, etc.) to support custom API keys.
+ *
  * @param provider - The AI provider to use
  * @param apiKey - Optional custom API key (overrides env vars)
  * @returns The configured AI model
  */
 export function getAIModel(provider: AIProvider = 'claude', apiKey?: string) {
   switch (provider) {
-    case 'claude':
-      // Claude Sonnet 4.5 - Most intelligent model, best for coding and complex agents
-      return anthropic('claude-sonnet-4-5-20250929', apiKey ? { apiKey } : undefined);
+    case 'claude': {
+      const anthropic = createAnthropic(apiKey ? { apiKey } : {});
+      return anthropic('claude-sonnet-4-5-20250929');
+    }
 
-    case 'openai':
-      // GPT-5.2 - OpenAI's flagship model for coding and agentic tasks
-      return openai('gpt-5.2', apiKey ? { apiKey } : undefined);
+    case 'openai': {
+      const openai = createOpenAI(apiKey ? { apiKey } : {});
+      return openai('gpt-5.2');
+    }
 
-    case 'gemini':
-      // Gemini 3 Pro - Google's state-of-the-art reasoning and multimodal model
-      return google('gemini-3-pro-preview', apiKey ? { apiKey } : undefined);
+    case 'gemini': {
+      const google = createGoogleGenerativeAI(apiKey ? { apiKey } : {});
+      return google('gemini-3-pro-preview');
+    }
 
     default:
       throw new Error(`Unknown AI provider: ${provider}`);

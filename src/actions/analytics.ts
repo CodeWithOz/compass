@@ -1,7 +1,7 @@
 'use server';
 
 import { prisma } from '@/lib/db/client';
-import { startOfWeek, endOfWeek, startOfDay, endOfDay } from 'date-fns';
+import { startOfWeek, startOfDay, endOfDay, addDays } from 'date-fns';
 
 /**
  * Get weekly summary for a specific week and optional resolution
@@ -242,6 +242,122 @@ export async function getEngagementStats(
 }
 
 /**
+ * Get recent strategic signals from AI analysis
+ *
+ * Returns a mix of reframes, risk flags, and suggested adjustments from
+ * recent AI interpretations. This powers the "Recent Strategic Signals"
+ * section on the dashboard.
+ *
+ * @param limit - Maximum number of signals to return
+ * @returns Recent strategic signals
+ */
+export async function getRecentSignals(limit = 5) {
+  try {
+    const interpretations = await prisma.aIInterpretation.findMany({
+      where: {
+        OR: [
+          { reframeType: { not: null } },
+          { riskFlags: { isEmpty: false } },
+          { suggestedAdjustments: { not: null } },
+        ],
+      },
+      include: {
+        journalEntry: {
+          select: {
+            id: true,
+            timestamp: true,
+            linkedResolutionIds: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: limit * 2,
+    });
+
+    const resolutions = await prisma.resolution.findMany({
+      where: { status: 'ACTIVE' },
+      select: { id: true, name: true },
+    });
+
+    const resolutionMap = new Map(resolutions.map((r) => [r.id, r.name]));
+
+    type Signal = {
+      id: string;
+      type: 'reframe' | 'risk' | 'adjustment';
+      text: string;
+      resolutionName: string | null;
+      momentumSignal: string;
+      createdAt: Date;
+      entryId: string;
+    };
+
+    const signals: Signal[] = [];
+
+    for (const interp of interpretations) {
+      const linkedResIds = interp.journalEntry.linkedResolutionIds;
+      const primaryResName = linkedResIds.length > 0 ? resolutionMap.get(linkedResIds[0]) ?? null : null;
+
+      if (interp.reframeType && interp.reframeSuggestion) {
+        signals.push({
+          id: `${interp.id}-reframe`,
+          type: 'reframe',
+          text: interp.reframeSuggestion,
+          resolutionName: primaryResName,
+          momentumSignal: interp.momentumSignal,
+          createdAt: interp.createdAt,
+          entryId: interp.journalEntryId,
+        });
+      }
+
+      if (interp.riskFlags.length > 0) {
+        for (const flag of interp.riskFlags) {
+          signals.push({
+            id: `${interp.id}-risk-${flag.substring(0, 10)}`,
+            type: 'risk',
+            text: flag,
+            resolutionName: primaryResName,
+            momentumSignal: interp.momentumSignal,
+            createdAt: interp.createdAt,
+            entryId: interp.journalEntryId,
+          });
+        }
+      }
+
+      if (interp.suggestedAdjustments && !interp.reframeType) {
+        signals.push({
+          id: `${interp.id}-adjust`,
+          type: 'adjustment',
+          text: interp.suggestedAdjustments,
+          resolutionName: primaryResName,
+          momentumSignal: interp.momentumSignal,
+          createdAt: interp.createdAt,
+          entryId: interp.journalEntryId,
+        });
+      }
+    }
+
+    // Deduplicate by text similarity and limit
+    const seen = new Set<string>();
+    const unique = signals.filter((s) => {
+      const key = s.text.substring(0, 60).toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    return { success: true, data: unique.slice(0, limit) };
+  } catch (error) {
+    console.error('Error fetching recent signals:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch recent signals',
+    };
+  }
+}
+
+/**
  * Get momentum trends for all active resolutions
  *
  * Useful for dashboard overview
@@ -272,6 +388,141 @@ export async function getMomentumTrends() {
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to fetch momentum trends',
+    };
+  }
+}
+
+/**
+ * Get weekly review data aggregated from AI interpretations and daily activities
+ *
+ * This computes review data on-the-fly rather than relying on pre-computed
+ * WeeklySummary records. For each active resolution, it gathers:
+ * - Journal entries that mention or engage with the resolution
+ * - Daily activity levels for the week
+ * - AI interpretation signals (momentum, risk flags, adjustments)
+ *
+ * @param weekStart - Monday of the week to review
+ * @returns Aggregated weekly review data grouped by resolution
+ */
+export async function getWeeklyReviewData(weekStart: Date) {
+  try {
+    const normalizedStart = startOfDay(weekStart);
+    const weekEnd = endOfDay(addDays(normalizedStart, 6));
+
+    // Get all active resolutions
+    const resolutions = await prisma.resolution.findMany({
+      where: { status: 'ACTIVE' },
+      include: { currentPhase: true },
+    });
+
+    if (resolutions.length === 0) {
+      return { success: true, data: [] };
+    }
+
+    // Get all journal entries for this week
+    const entries = await prisma.journalEntry.findMany({
+      where: {
+        timestamp: {
+          gte: normalizedStart,
+          lte: weekEnd,
+        },
+      },
+      include: {
+        interpretations: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
+      },
+      orderBy: { timestamp: 'desc' },
+    });
+
+    // Get daily activities for this week
+    const dailyActivities = await prisma.dailyActivity.findMany({
+      where: {
+        date: {
+          gte: normalizedStart,
+          lte: weekEnd,
+        },
+      },
+    });
+
+    type WeeklyResolutionReview = {
+      resolution: {
+        id: string;
+        name: string;
+        type: string;
+        purpose: string | null;
+      };
+      activeDays: number;
+      fullDays: number;
+      partialDays: number;
+      momentumTrend: 'GROWING' | 'STABLE' | 'DECLINING';
+      riskFlags: string[];
+      adjustments: string[];
+      entryCount: number;
+    };
+
+    const reviews: WeeklyResolutionReview[] = [];
+
+    for (const resolution of resolutions) {
+      // Get activities for this resolution this week
+      const resActivities = dailyActivities.filter((a) => a.resolutionId === resolution.id);
+      const fullDays = resActivities.filter((a) => a.activityLevel === 'FULL').length;
+      const partialDays = resActivities.filter((a) => a.activityLevel === 'PARTIAL').length;
+      const activeDays = fullDays + partialDays;
+
+      // Gather signals from interpretations that reference this resolution
+      const riskFlags: string[] = [];
+      const adjustments: string[] = [];
+      let entryCount = 0;
+
+      for (const entry of entries) {
+        const interp = entry.interpretations[0];
+        if (!interp) continue;
+
+        // Check if interpretation detected activity for this resolution
+        const detected = interp.detectedActivity as Record<string, string> | null;
+        if (detected && detected[resolution.id] && detected[resolution.id] !== 'NONE') {
+          entryCount++;
+        }
+
+        // Collect risk flags and adjustments from entries linked to this resolution
+        if (entry.linkedResolutionIds.includes(resolution.id) || (detected && detected[resolution.id])) {
+          riskFlags.push(...interp.riskFlags.filter((f) => !riskFlags.includes(f)));
+          if (interp.suggestedAdjustments) {
+            adjustments.push(interp.suggestedAdjustments);
+          }
+        }
+      }
+
+      // Determine momentum trend based on activity
+      let momentumTrend: 'GROWING' | 'STABLE' | 'DECLINING' = 'STABLE';
+      if (activeDays >= 4) momentumTrend = 'GROWING';
+      else if (activeDays === 0 && entryCount === 0) momentumTrend = 'DECLINING';
+
+      reviews.push({
+        resolution: {
+          id: resolution.id,
+          name: resolution.name,
+          type: resolution.type,
+          purpose: resolution.purpose,
+        },
+        activeDays,
+        fullDays,
+        partialDays,
+        momentumTrend,
+        riskFlags: [...new Set(riskFlags)].slice(0, 3),
+        adjustments: [...new Set(adjustments)].slice(0, 2),
+        entryCount,
+      });
+    }
+
+    return { success: true, data: reviews };
+  } catch (error) {
+    console.error('Error fetching weekly review data:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch weekly review data',
     };
   }
 }

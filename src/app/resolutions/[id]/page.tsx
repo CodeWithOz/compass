@@ -3,14 +3,16 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getResolution } from '@/actions/resolutions';
 import { getDailyActivity } from '@/actions/analytics';
-import { getJournalEntries } from '@/actions/journal';
+import { getLinkedJournalEntries } from '@/actions/journal';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Zap } from 'lucide-react';
 import { ArchiveResolutionButton } from './ArchiveResolutionButton';
-import { subDays } from 'date-fns';
+import { subDays, format } from 'date-fns';
+import { HeatmapChart } from '@/components/features/HeatmapChart';
+import type { HeatmapDay } from '@/components/features/HeatmapChart';
 
 export default async function ResolutionDetailPage({
   params,
@@ -29,13 +31,18 @@ export default async function ResolutionDetailPage({
   const endDate = new Date();
   const startDate = subDays(endDate, 180);
 
-  const [activityResult, entriesResult] = await Promise.all([
+  const [activityResult, linkedEntriesResult] = await Promise.all([
     getDailyActivity(startDate, endDate, id).catch(() => null),
-    getJournalEntries({ resolutionId: id, limit: 10 }).catch(() => null),
+    getLinkedJournalEntries(id, 5).catch(() => null),
   ]);
 
-  const activities = activityResult?.data ?? [];
-  const recentEntries = entriesResult?.data ?? [];
+  const rawActivities = activityResult?.data ?? [];
+  const recentEntries = linkedEntriesResult?.data ?? [];
+
+  const heatmapDays: HeatmapDay[] = rawActivities.map((a) => ({
+    date: format(new Date(a.date), 'yyyy-MM-dd'),
+    level: a.activityLevel as HeatmapDay['level'],
+  }));
 
   return (
     <>
@@ -130,42 +137,19 @@ export default async function ResolutionDetailPage({
         <section className="mb-12">
           <div className="flex justify-between items-end mb-3">
             <h2 className="text-lg font-bold tracking-tight">Engagement Momentum</h2>
-            <span className="text-xs text-muted-foreground">Past 6 Months</span>
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <span>Quiet</span>
+              <div className="flex gap-0.5">
+                <div className="w-2.5 h-2.5 rounded-sm bg-primary/[0.08]" />
+                <div className="w-2.5 h-2.5 rounded-sm bg-primary/40" />
+                <div className="w-2.5 h-2.5 rounded-sm bg-primary" />
+              </div>
+              <span>Active</span>
+            </div>
           </div>
           <Card>
-            <CardContent className="p-5">
-              <div className="heatmap-grid">
-                {Array.from({ length: 60 }).map((_, i) => {
-                  const date = subDays(endDate, 59 - i);
-                  const activity = activities.find(
-                    (a) => new Date(a.date).toDateString() === date.toDateString()
-                  );
-
-                  let level = 'bg-primary/[0.08]';
-                  if (activity) {
-                    if (activity.activityLevel === 'FULL') level = 'bg-primary';
-                    else if (activity.activityLevel === 'PARTIAL') level = 'bg-primary/40';
-                    else level = 'bg-primary/[0.12]';
-                  }
-
-                  return (
-                    <div
-                      key={i}
-                      className={`aspect-square rounded-sm ${level}`}
-                    />
-                  );
-                })}
-              </div>
-              <div className="flex items-center justify-between mt-3 text-[10px] text-muted-foreground uppercase tracking-wider">
-                <span>Less Active</span>
-                <div className="flex gap-0.5">
-                  <div className="w-2.5 h-2.5 rounded-sm bg-primary/10" />
-                  <div className="w-2.5 h-2.5 rounded-sm bg-primary/30" />
-                  <div className="w-2.5 h-2.5 rounded-sm bg-primary/60" />
-                  <div className="w-2.5 h-2.5 rounded-sm bg-primary" />
-                </div>
-                <span>Deep Work</span>
-              </div>
+            <CardContent className="p-4">
+              <HeatmapChart data={heatmapDays} weeks={26} />
             </CardContent>
           </Card>
         </section>

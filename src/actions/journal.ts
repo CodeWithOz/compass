@@ -268,6 +268,47 @@ export async function triggerReanalysis(entryId: string, provider: AIProvider) {
 }
 
 /**
+ * Get journal entries linked to a resolution via AI-detected activity
+ *
+ * Unlike getJournalEntries which filters by user-provided linkedResolutionIds,
+ * this queries for entries whose AI interpretations detected activity for the
+ * given resolution (stored in detectedActivity JSON field).
+ *
+ * @param resolutionId - Resolution ID to find linked entries for
+ * @param limit - Maximum entries to return
+ * @returns Journal entries with AI-detected links to the resolution
+ */
+export async function getLinkedJournalEntries(resolutionId: string, limit = 5) {
+  try {
+    const interpretations = await prisma.aIInterpretation.findMany({
+      where: {
+        detectedActivity: {
+          path: [resolutionId],
+          not: 'NONE',
+        },
+      },
+      include: {
+        journalEntry: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: limit,
+    });
+
+    const entries = interpretations.map((interp) => interp.journalEntry);
+
+    return { success: true, data: entries };
+  } catch (error) {
+    console.error('Error fetching linked journal entries:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch linked entries',
+    };
+  }
+}
+
+/**
  * Get entries pending AI analysis
  *
  * Useful for backfilling or checking analysis status

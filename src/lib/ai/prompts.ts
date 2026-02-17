@@ -122,7 +122,8 @@ export function getJournalAnalysisUserPrompt(
       }
 
       return `
-${index + 1}. Resolution: "${resolution.name}"
+${index + 1}. Resolution ID: "${resolution.id}"
+   Name: "${resolution.name}"
    Type: ${resolution.type}
    Purpose: ${resolution.purpose || 'Not specified'}
    Success Signals: ${resolution.successSignals || 'Not specified'}
@@ -155,7 +156,7 @@ For each resolution, determine:
 5. Is there a pattern suggesting strategic reframing? (Only if you have historical context)
 
 Provide:
-- **detectedActivity**: Object mapping resolution IDs to activity levels
+- **detectedActivity**: Object mapping resolution IDs (the exact UUID strings from "Resolution ID" above) to activity levels (NONE, PARTIAL, or FULL). You MUST use the exact resolution IDs as keys, not names.
 - **momentumSignal**: Overall momentum (NONE, LOW, MEDIUM, HIGH)
 - **riskFlags**: Array of risk signals detected
 - **suggestedAdjustments**: Optional tactical suggestions (not reframes)

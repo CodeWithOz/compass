@@ -142,7 +142,7 @@ export async function getResolutionEntryCountsPerDay(
           path: [resolutionId],
           not: 'NONE',
         },
-        createdAt: { gte: startOfDay(startDate), lte: endOfDay(endDate) },
+        journalEntry: { timestamp: { gte: startOfDay(startDate), lte: endOfDay(endDate) } },
       },
       include: {
         journalEntry: { select: { timestamp: true } },

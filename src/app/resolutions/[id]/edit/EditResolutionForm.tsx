@@ -63,7 +63,11 @@ export function EditResolutionForm({ resolution }: EditResolutionFormProps) {
         type: formData.type,
         constraints: formData.constraints || undefined,
         successSignals: formData.successSignals || undefined,
-        targetDate: formData.targetDate ? new Date(formData.targetDate) : undefined,
+        targetDate: (() => {
+          if (!formData.targetDate) return undefined;
+          const [year, month, day] = formData.targetDate.split('-').map(Number);
+          return new Date(year, month - 1, day);
+        })(),
         exitCriteria: formData.exitCriteria || undefined,
       });
 

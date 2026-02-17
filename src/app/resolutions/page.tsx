@@ -20,8 +20,8 @@ export default async function ResolutionsPage({
     ? (statusParam as ResolutionStatus)
     : 'ACTIVE';
   const [resolutionsResult, archivedResult] = await Promise.all([
-    getResolutions(status).catch(() => null),
-    getResolutions('ARCHIVED').catch(() => null),
+    getResolutions(status).catch((e) => { console.error('Failed to fetch resolutions:', e); return null; }),
+    getResolutions('ARCHIVED').catch((e) => { console.error('Failed to fetch archived resolutions:', e); return null; }),
   ]);
 
   const resolutions = resolutionsResult?.data ?? [];

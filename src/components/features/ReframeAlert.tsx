@@ -55,7 +55,11 @@ export function ReframeAlert({
     },
   };
 
-  const config = reframeConfig[type];
+  const config = reframeConfig[type] ?? {
+    icon: '⚠️',
+    title: 'Strategic Reframe',
+    description: 'A reframe has been detected for this resolution',
+  };
 
   const handleDismiss = async () => {
     setIsProcessing(true);
@@ -159,10 +163,10 @@ export function ReframeAlert({
               ) : (
                 <div className="flex items-center gap-2">
                   <span className="text-sm">Snooze for:</span>
-                  <Button size="sm" variant="secondary" onClick={() => handleSnooze(1)}>
+                  <Button size="sm" variant="secondary" onClick={() => handleSnooze(1)} disabled={isProcessing}>
                     1 day
                   </Button>
-                  <Button size="sm" variant="secondary" onClick={() => handleSnooze(7)}>
+                  <Button size="sm" variant="secondary" onClick={() => handleSnooze(7)} disabled={isProcessing}>
                     1 week
                   </Button>
                   <Button size="sm" variant="ghost" onClick={() => setShowSnooze(false)}>

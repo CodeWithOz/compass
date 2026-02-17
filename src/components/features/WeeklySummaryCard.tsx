@@ -25,7 +25,7 @@ export function WeeklySummaryCard({ summary }: WeeklySummaryCardProps) {
   const weekEnd = new Date(weekStart);
   weekEnd.setDate(weekEnd.getDate() + 6);
 
-  const trend = trendConfig[summary.momentumTrend];
+  const trend = trendConfig[summary.momentumTrend] ?? { label: 'Unknown', variant: 'secondary' as const, icon: '➡️' };
 
   return (
     <Card>

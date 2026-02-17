@@ -53,7 +53,9 @@ export function AIInterpretationView({ interpretation, isPending }: AIInterpreta
         </div>
 
         {/* Detected activity */}
-        {Object.keys(interpretation.detectedActivity as object).length > 0 && (
+        {interpretation.detectedActivity != null &&
+          typeof interpretation.detectedActivity === 'object' &&
+          Object.keys(interpretation.detectedActivity as object).length > 0 && (
           <div>
             <p className="text-sm font-medium mb-2">Detected Activity</p>
             <div className="space-y-1">
@@ -101,7 +103,7 @@ export function AIInterpretationView({ interpretation, isPending }: AIInterpreta
         {interpretation.reframeType && (
           <div className="rounded-md border bg-purple-50 border-purple-200 p-3">
             <p className="text-sm font-medium text-purple-900">
-              ⚠️ Strategic reframe detected: {interpretation.reframeType.replace('_', ' ')}
+              ⚠️ Strategic reframe detected: {interpretation.reframeType.replace(/_/g, ' ')}
             </p>
             <p className="text-xs text-purple-700 mt-1">
               View the full reframe suggestion on your dashboard

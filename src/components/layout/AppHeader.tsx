@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Compass, Menu } from 'lucide-react';
@@ -27,6 +27,7 @@ const navItems = [
 
 export function AppHeader() {
   const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const isActive = (href: string) => {
     if (href === '/') {
@@ -68,7 +69,7 @@ export function AppHeader() {
         {/* Mobile Menu */}
         <div className="md:hidden flex items-center gap-1">
           <ThemeToggle />
-          <Sheet>
+          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="md:hidden">
                 <Menu className="h-5 w-5" />
@@ -89,6 +90,7 @@ export function AppHeader() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  onClick={() => setMobileOpen(false)}
                   className={cn(
                     'px-3 py-3 text-base rounded-md transition-colors',
                     isActive(item.href)

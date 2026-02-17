@@ -29,6 +29,14 @@ export function ResolutionCard({ resolution, onClick }: ResolutionCardProps) {
     <Card
       className={`transition-shadow ${onClick ? 'cursor-pointer hover:shadow-lg' : ''}`}
       onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      } : undefined}
     >
       <CardHeader>
         <div className="flex items-start justify-between">

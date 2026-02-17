@@ -22,6 +22,7 @@ export function JournalEntryForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
   const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -47,7 +48,7 @@ export function JournalEntryForm({
         {
           rawText: text,
           linkedResolutionIds,
-          idempotencyKey: crypto.randomUUID(),
+          idempotencyKey,
         },
         provider
       );
@@ -58,6 +59,7 @@ export function JournalEntryForm({
 
       setSuccess(true);
       setText('');
+      setIdempotencyKey(crypto.randomUUID());
 
       if (onSuccess) {
         onSuccess();

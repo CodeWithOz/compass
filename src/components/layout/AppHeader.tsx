@@ -33,7 +33,7 @@ export function AppHeader() {
     if (href === '/') {
       return pathname === '/' || pathname === '/dashboard';
     }
-    return pathname.startsWith(href);
+    return pathname === href || pathname.startsWith(href + '/');
   };
 
   return (

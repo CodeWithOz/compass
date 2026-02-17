@@ -22,9 +22,8 @@ export function ReanalyzeButton({ entryId }: ReanalyzeButtonProps) {
       const result = await triggerReanalysis(entryId, 'claude' as AIProvider);
 
       if (result.success) {
-        setTimeout(() => {
-          router.refresh();
-        }, 2000);
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        router.refresh();
       } else {
         alert(result.error);
       }
@@ -43,6 +42,7 @@ export function ReanalyzeButton({ entryId }: ReanalyzeButtonProps) {
       onClick={handleReanalyze}
       disabled={isAnalyzing}
       className="h-8 w-8 rounded-full"
+      aria-label="Reanalyze journal entry"
     >
       {isAnalyzing ? (
         <Loader2 className="h-4 w-4 animate-spin" />

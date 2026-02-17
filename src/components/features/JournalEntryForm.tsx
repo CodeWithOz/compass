@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createJournalEntry } from '@/actions/journal';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -22,6 +22,13 @@ export function JournalEntryForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +47,7 @@ export function JournalEntryForm({
         {
           rawText: text,
           linkedResolutionIds,
-          idempotencyKey: `${Date.now()}-${Math.random()}`,
+          idempotencyKey: crypto.randomUUID(),
         },
         provider
       );
@@ -56,7 +63,8 @@ export function JournalEntryForm({
         onSuccess();
       }
 
-      setTimeout(() => setSuccess(false), 3000);
+      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
+      successTimeoutRef.current = setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save journal entry');
     } finally {

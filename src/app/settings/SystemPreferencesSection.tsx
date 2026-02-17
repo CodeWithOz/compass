@@ -26,11 +26,23 @@ export function SystemPreferencesSection({
     setting: 'experimentalPhases' | 'hardMode' | 'reflectiveReminders',
     value: boolean
   ) => {
+    const previous = setting === 'experimentalPhases'
+      ? experimentalPhases
+      : setting === 'hardMode'
+        ? hardMode
+        : reflectiveReminders;
+
     if (setting === 'experimentalPhases') setExperimentalPhases(value);
     if (setting === 'hardMode') setHardMode(value);
     if (setting === 'reflectiveReminders') setReflectiveReminders(value);
 
-    await updateSettings({ [setting]: value });
+    try {
+      await updateSettings({ [setting]: value });
+    } catch {
+      if (setting === 'experimentalPhases') setExperimentalPhases(previous);
+      if (setting === 'hardMode') setHardMode(previous);
+      if (setting === 'reflectiveReminders') setReflectiveReminders(previous);
+    }
   };
 
   return (

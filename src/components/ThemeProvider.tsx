@@ -20,18 +20,19 @@ const initialState: ThemeProviderState = {
   setTheme: () => null,
 };
 
-const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
+const ThemeProviderContext = createContext<ThemeProviderState | undefined>(undefined);
 
 export function ThemeProvider({
   children,
   defaultTheme = 'system',
   storageKey = 'compass-ui-theme',
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(() =>
-    typeof window !== 'undefined'
-      ? (localStorage.getItem(storageKey) as Theme) || defaultTheme
-      : defaultTheme
-  );
+  const validThemes: Theme[] = ['dark', 'light', 'system'];
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window === 'undefined') return defaultTheme;
+    const stored = localStorage.getItem(storageKey);
+    return validThemes.includes(stored as Theme) ? (stored as Theme) : defaultTheme;
+  });
 
   useEffect(() => {
     const root = window.document.documentElement;

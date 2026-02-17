@@ -45,10 +45,11 @@ function levelText(count: number): string {
  * GitHub-style contribution heatmap.
  *
  * Fixed-size squares (10px) with scrollable overflow on narrow viewports.
- * Week starts on Sunday. Tooltips rendered as a portal to avoid clipping.
+ * Day-of-week labels are sticky on the left. Week starts on Sunday.
+ * Tooltips rendered as a portal to avoid clipping.
  */
 export function HeatmapChart({ data, weeks = 52 }: HeatmapChartProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [tooltip, setTooltip] = useState<{
     text: string;
     x: number;
@@ -111,9 +112,12 @@ export function HeatmapChart({ data, weeks = 52 }: HeatmapChartProps) {
   }, [data, weeks]);
 
   useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.scrollLeft = containerRef.current.scrollWidth;
-    }
+    const el = scrollRef.current;
+    if (!el) return;
+    // Use rAF to ensure layout is complete before scrolling
+    requestAnimationFrame(() => {
+      el.scrollLeft = el.scrollWidth;
+    });
   }, [grid.length]);
 
   const handleMouseEnter = useCallback(
@@ -132,47 +136,47 @@ export function HeatmapChart({ data, weeks = 52 }: HeatmapChartProps) {
     setTooltip(null);
   }, []);
 
-  const totalWidth =
-    LABEL_WIDTH + grid.length * CELL_SIZE + (grid.length - 1) * CELL_GAP;
+  const gridWidth = grid.length * CELL_SIZE + (grid.length - 1) * CELL_GAP;
+  const monthRowHeight = 14;
 
   return (
-    <div ref={containerRef} className="relative w-full overflow-x-auto">
-      <div style={{ minWidth: totalWidth }}>
-        {/* Month labels */}
-        <div className="flex" style={{ paddingLeft: `${LABEL_WIDTH}px`, marginBottom: '2px' }}>
-          {grid.map((_, weekIdx) => {
-            const monthEntry = monthLabels.find((m) => m.colStart === weekIdx);
-            return (
-              <div
-                key={weekIdx}
-                style={{ width: CELL_SIZE, marginRight: CELL_GAP }}
-                className="text-[10px] text-muted-foreground leading-none shrink-0"
-              >
-                {monthEntry ? monthEntry.label : ''}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Grid body: day labels + cells */}
-        <div className="flex">
-          {/* Day-of-week labels */}
+    <div className="relative flex w-full">
+      {/* Fixed day-of-week labels column */}
+      <div className="shrink-0" style={{ width: LABEL_WIDTH }}>
+        {/* Spacer for month label row */}
+        <div style={{ height: monthRowHeight }} />
+        {/* Day labels */}
+        {DAY_LABELS.map((label, i) => (
           <div
-            className="flex flex-col shrink-0"
-            style={{ width: `${LABEL_WIDTH}px` }}
+            key={i}
+            style={{
+              height: CELL_SIZE,
+              marginBottom: i < 6 ? CELL_GAP : 0,
+            }}
+            className="text-[10px] text-muted-foreground leading-none flex items-center justify-end pr-1"
           >
-            {DAY_LABELS.map((label, i) => (
-              <div
-                key={i}
-                style={{
-                  height: CELL_SIZE,
-                  marginBottom: i < 6 ? CELL_GAP : 0,
-                }}
-                className="text-[10px] text-muted-foreground leading-none flex items-center justify-end pr-1"
-              >
-                {label}
-              </div>
-            ))}
+            {label}
+          </div>
+        ))}
+      </div>
+
+      {/* Scrollable grid area */}
+      <div ref={scrollRef} className="overflow-x-auto flex-1 min-w-0">
+        <div style={{ minWidth: gridWidth }}>
+          {/* Month labels */}
+          <div className="flex" style={{ height: monthRowHeight }}>
+            {grid.map((_, weekIdx) => {
+              const monthEntry = monthLabels.find((m) => m.colStart === weekIdx);
+              return (
+                <div
+                  key={weekIdx}
+                  style={{ width: CELL_SIZE, marginRight: CELL_GAP }}
+                  className="text-[10px] text-muted-foreground leading-none shrink-0"
+                >
+                  {monthEntry ? monthEntry.label : ''}
+                </div>
+              );
+            })}
           </div>
 
           {/* Heatmap squares */}

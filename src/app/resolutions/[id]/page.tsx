@@ -208,9 +208,11 @@ export default async function ResolutionDetailPage({
             </>
           )}
           {resolution.status === 'ARCHIVED' && (
-            <Button asChild>
-              <Link href="/resolutions">Back to Resolutions</Link>
-            </Button>
+            <div className="ml-auto">
+              <Button size="sm" asChild>
+                <Link href="/resolutions">Back to List</Link>
+              </Button>
+            </div>
           )}
         </footer>
       </main>

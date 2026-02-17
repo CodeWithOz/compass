@@ -54,7 +54,7 @@ export function JournalEntryForm({
       );
 
       if (!result.success) {
-        throw new Error(result.error);
+        throw new Error(result.error ?? 'Unknown error');
       }
 
       setSuccess(true);

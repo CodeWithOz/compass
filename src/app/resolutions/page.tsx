@@ -19,10 +19,16 @@ export default async function ResolutionsPage({
   const status: ResolutionStatus = validStatuses.includes(statusParam as ResolutionStatus)
     ? (statusParam as ResolutionStatus)
     : 'ACTIVE';
-  const [resolutionsResult, archivedResult] = await Promise.all([
-    getResolutions(status).catch((e) => { console.error('Failed to fetch resolutions:', e); return null; }),
-    getResolutions('ARCHIVED').catch((e) => { console.error('Failed to fetch archived resolutions:', e); return null; }),
-  ]);
+  let resolutionsResult, archivedResult;
+  if (status === 'ARCHIVED') {
+    resolutionsResult = await getResolutions('ARCHIVED').catch((e) => { console.error('Failed to fetch resolutions:', e); return null; });
+    archivedResult = resolutionsResult;
+  } else {
+    [resolutionsResult, archivedResult] = await Promise.all([
+      getResolutions(status).catch((e) => { console.error('Failed to fetch resolutions:', e); return null; }),
+      getResolutions('ARCHIVED').catch((e) => { console.error('Failed to fetch archived resolutions:', e); return null; }),
+    ]);
+  }
 
   const resolutions = resolutionsResult?.data ?? [];
   const archived = archivedResult?.data ?? [];

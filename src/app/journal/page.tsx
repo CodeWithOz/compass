@@ -66,10 +66,10 @@ export default async function JournalPage() {
                           })}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {entry.rawText.match(/\S+/g)?.length ?? 0} words
+                          {(entry.rawText ?? '').match(/\S+/g)?.length ?? 0} words
                         </p>
                       </div>
-                      <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">{entry.rawText}</p>
+                      <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">{entry.rawText ?? ''}</p>
                     </CardContent>
                   </Card>
                 </Link>

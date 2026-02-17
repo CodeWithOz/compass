@@ -134,22 +134,15 @@ export default async function JournalEntryPage({
           </CardContent>
         </Card>
 
-        {/* Back navigation */}
-        <div className="flex items-center justify-start mt-2">
+        {/* Footer */}
+        <Separator className="mb-6 mt-12" />
+        <footer className="flex items-center justify-end pb-2">
           <Button variant="ghost" size="sm" asChild>
             <Link href="/journal">
               <ArrowLeft className="h-4 w-4" />
               Back to Journal
             </Link>
           </Button>
-        </div>
-
-        {/* Footer */}
-        <footer className="mt-12 text-center pt-4 pb-2">
-          <Separator className="mb-6" />
-          <p className="text-xs text-muted-foreground italic">
-            Honest reflection is the foundation of direction.
-          </p>
         </footer>
       </main>
     </>

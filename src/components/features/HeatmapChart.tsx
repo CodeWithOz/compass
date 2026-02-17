@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState, useCallback, useRef, useSyncExternalStore } from 'react';
+import React, { useMemo, useState, useCallback, useRef, useEffect, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import { format, subDays, startOfWeek, addDays, differenceInWeeks } from 'date-fns';
 
@@ -109,6 +109,12 @@ export function HeatmapChart({ data, weeks = 52 }: HeatmapChartProps) {
 
     return { grid: gridData, monthLabels: months };
   }, [data, weeks]);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.scrollLeft = containerRef.current.scrollWidth;
+    }
+  }, [grid.length]);
 
   const handleMouseEnter = useCallback(
     (e: React.MouseEvent, count: number, date: Date) => {

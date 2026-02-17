@@ -38,7 +38,15 @@ export function EditResolutionForm({ resolution }: EditResolutionFormProps) {
     type: resolution.type,
     constraints: resolution.constraints || '',
     successSignals: resolution.successSignals || '',
-    targetDate: resolution.targetDate ? new Date(resolution.targetDate).toISOString().split('T')[0] : '',
+    targetDate: (() => {
+      if (!resolution.targetDate) return '';
+      const d = new Date(resolution.targetDate);
+      if (isNaN(d.getTime())) return '';
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    })(),
     exitCriteria: resolution.exitCriteria || '',
   });
 

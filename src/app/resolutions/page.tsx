@@ -15,13 +15,16 @@ export default async function ResolutionsPage({
   searchParams: Promise<{ status?: string }>;
 }) {
   const { status: statusParam } = await searchParams;
-  const status = (statusParam as ResolutionStatus) || 'ACTIVE';
+  const validStatuses: ResolutionStatus[] = ['ACTIVE', 'PAUSED', 'ARCHIVED'];
+  const status: ResolutionStatus = validStatuses.includes(statusParam as ResolutionStatus)
+    ? (statusParam as ResolutionStatus)
+    : 'ACTIVE';
   const [resolutionsResult, archivedResult] = await Promise.all([
-    getResolutions(status),
+    getResolutions(status).catch(() => null),
     getResolutions('ARCHIVED').catch(() => null),
   ]);
 
-  const resolutions = resolutionsResult.data ?? [];
+  const resolutions = resolutionsResult?.data ?? [];
   const archived = archivedResult?.data ?? [];
 
   return (

@@ -15,7 +15,8 @@ export default async function WeeklyReviewPage({
   searchParams: Promise<{ week?: string }>;
 }) {
   const { week: weekParam } = await searchParams;
-  const weekOffset = parseInt(weekParam || '0', 10);
+  const parsedWeek = parseInt(weekParam || '0', 10);
+  const weekOffset = Number.isFinite(parsedWeek) ? parsedWeek : 0;
 
   const currentWeekStart = addWeeks(startOfWeek(new Date(), { weekStartsOn: 1 }), weekOffset);
   const canGoForward = weekOffset < 0;

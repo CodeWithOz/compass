@@ -14,7 +14,11 @@ import type { ResolutionStatus } from '@prisma/client';
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status') as ResolutionStatus | null;
+    const statusParam = searchParams.get('status');
+    const validStatuses: ResolutionStatus[] = ['ACTIVE', 'PAUSED', 'ARCHIVED'];
+    const status: ResolutionStatus | null = validStatuses.includes(statusParam as ResolutionStatus)
+      ? (statusParam as ResolutionStatus)
+      : null;
 
     const result = await getResolutions(status || undefined);
 

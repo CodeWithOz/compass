@@ -47,7 +47,7 @@ export function AIInterpretationView({ interpretation, isPending }: AIInterpreta
         {/* Momentum signal */}
         <div>
           <p className="text-sm font-medium mb-2">Momentum Signal</p>
-          <Badge variant={momentumVariants[interpretation.momentumSignal]}>
+          <Badge variant={momentumVariants[interpretation.momentumSignal] ?? 'secondary'}>
             {interpretation.momentumSignal}
           </Badge>
         </div>

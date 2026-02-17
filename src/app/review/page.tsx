@@ -52,7 +52,7 @@ export default async function WeeklyReviewPage({
         {/* Header */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 mb-4">
-            <Button variant="ghost" size="icon" asChild>
+            <Button variant="ghost" size="icon" aria-label="Previous week" asChild>
               <Link href={`/review?week=${previousWeek}`}>
                 <ChevronLeft className="h-4 w-4" />
               </Link>
@@ -61,13 +61,13 @@ export default async function WeeklyReviewPage({
               Weekly Review
             </Badge>
             {canGoForward ? (
-              <Button variant="ghost" size="icon" asChild>
+              <Button variant="ghost" size="icon" aria-label="Next week" asChild>
                 <Link href={`/review?week=${nextWeek}`}>
                   <ChevronRight className="h-4 w-4" />
                 </Link>
               </Button>
             ) : (
-              <Button variant="ghost" size="icon" disabled>
+              <Button variant="ghost" size="icon" aria-label="Next week" disabled>
                 <ChevronRight className="h-4 w-4" />
               </Button>
             )}

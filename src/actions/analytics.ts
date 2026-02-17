@@ -569,7 +569,7 @@ export async function getWeeklyReviewData(weekStart: Date) {
         }
 
         // Collect risk flags and adjustments from entries linked to this resolution
-        if (entry.linkedResolutionIds.includes(resolution.id) || (detected && detected[resolution.id])) {
+        if (entry.linkedResolutionIds.includes(resolution.id) || (detected && detected[resolution.id] && detected[resolution.id] !== 'NONE')) {
           riskFlags.push(...interp.riskFlags.filter((f) => !riskFlags.includes(f)));
           if (interp.suggestedAdjustments) {
             adjustments.push(interp.suggestedAdjustments);

@@ -114,7 +114,7 @@ export function ReframeAlert({
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="font-semibold text-lg">{config.title}</h3>
                 <Badge variant="outline">
-                  {type.replace('_', ' ')}
+                  {type.replaceAll('_', ' ')}
                 </Badge>
               </div>
               <p className="text-sm text-muted-foreground">{config.description}</p>

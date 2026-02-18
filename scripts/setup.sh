@@ -197,20 +197,23 @@ install_deps() {
 # ---------------------------------------------------------------------------
 run_prisma() {
   info "Running Prisma migrations…"
-  deploy_output=$(npx prisma migrate deploy 2>&1) && ok "Migrations applied" || {
+  deploy_output=$(npx prisma migrate deploy 2>&1)
+  deploy_exit=$?
+  if [ $deploy_exit -eq 0 ]; then
+    ok "Migrations applied"
+  else
     # migrate deploy failed — check if it's the expected "no migrations yet" case
     # (e.g. fresh project with no migration files) and fall back to migrate dev.
     # Any other error (DB connection, schema drift) is printed so the cause is visible.
     if echo "$deploy_output" | grep -qi "no pending migrations\|no migration\|no schema changes"; then
       info "No existing migrations found — creating initial migration…"
-      npx prisma migrate dev --name init
     else
       printf "%s\n" "$deploy_output" >&2
       info "migrate deploy failed — trying migrate dev --name init as fallback…"
-      npx prisma migrate dev --name init
     fi
+    npx prisma migrate dev --name init
     ok "Migrations applied"
-  }
+  fi
 
   info "Generating Prisma client…"
   npx prisma generate

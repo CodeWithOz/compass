@@ -483,12 +483,12 @@ export async function getMomentumTrends() {
  * - Daily activity levels for the week
  * - AI interpretation signals (momentum, risk flags, adjustments)
  *
- * @param weekStart - Monday of the week to review
+ * @param weekStart - Sunday that begins the week
  * @returns Aggregated weekly review data grouped by resolution
  */
 export async function getWeeklyReviewData(weekStart: Date) {
   try {
-    const normalizedStart = startOfDay(weekStart);
+    const normalizedStart = startOfDay(startOfWeek(weekStart, { weekStartsOn: 0 }));
     const weekEnd = endOfDay(addDays(normalizedStart, 6));
 
     // Get all active resolutions

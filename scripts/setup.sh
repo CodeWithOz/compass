@@ -32,7 +32,11 @@ DB_NAME="compass"
 
 # Derive a stable, unique container name + port from the worktree directory.
 # This ensures each worktree gets its own isolated Postgres.
-WORKTREE_HASH=$(echo -n "$PROJECT_DIR" | shasum | cut -c1-8)
+if command -v shasum > /dev/null 2>&1; then
+  WORKTREE_HASH=$(echo -n "$PROJECT_DIR" | shasum | cut -c1-8)
+else
+  WORKTREE_HASH=$(echo -n "$PROJECT_DIR" | sha1sum | cut -c1-8)
+fi
 CONTAINER_NAME="compass-pg-${WORKTREE_HASH}"
 
 # Map hash to a port in the range 54320–54999 to avoid conflicts.

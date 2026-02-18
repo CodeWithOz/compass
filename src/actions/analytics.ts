@@ -269,7 +269,7 @@ export async function getEngagementStats(
     const totalDays = Math.ceil(
       (normalizedEnd.getTime() - normalizedStart.getTime()) / (24 * 60 * 60 * 1000)
     );
-    const activeDays = activities.length;
+    const activeDays = activities.filter((a) => a.activityLevel !== 'NONE').length;
     const fullActivityDays = activities.filter((a) => a.activityLevel === 'FULL').length;
     const partialActivityDays = activities.filter((a) => a.activityLevel === 'PARTIAL').length;
 

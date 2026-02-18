@@ -64,8 +64,12 @@ export function ReframeAlert({
   const handleDismiss = async () => {
     setIsProcessing(true);
     try {
-      await dismissReframe(interpretationId);
-      if (onDismiss) onDismiss();
+      const result = await dismissReframe(interpretationId);
+      if (result.success) {
+        if (onDismiss) onDismiss();
+      } else {
+        console.error('Failed to dismiss reframe:', result.error);
+      }
     } catch (error) {
       console.error('Failed to dismiss reframe:', error);
     } finally {
@@ -78,8 +82,12 @@ export function ReframeAlert({
     try {
       const until = new Date();
       until.setDate(until.getDate() + days);
-      await snoozeReframe(interpretationId, until);
-      if (onDismiss) onDismiss();
+      const result = await snoozeReframe(interpretationId, until);
+      if (result.success) {
+        if (onDismiss) onDismiss();
+      } else {
+        console.error('Failed to snooze reframe:', result.error);
+      }
     } catch (error) {
       console.error('Failed to snooze reframe:', error);
     } finally {
@@ -93,8 +101,12 @@ export function ReframeAlert({
     try {
       const action = window.prompt('What action did you take in response to this reframe?');
       if (action) {
-        await applyReframe(interpretationId, action);
-        if (onDismiss) onDismiss();
+        const result = await applyReframe(interpretationId, action);
+        if (result.success) {
+          if (onDismiss) onDismiss();
+        } else {
+          console.error('Failed to apply reframe:', result.error);
+        }
       }
     } catch (error) {
       console.error('Failed to apply reframe:', error);

@@ -568,7 +568,11 @@ export async function getWeeklyReviewData(weekStart: Date) {
       const prevResActivities = previousDailyActivities.filter((a) => a.resolutionId === resolution.id);
       const prevActiveDays = prevResActivities.filter((a) => a.activityLevel !== 'NONE').length;
 
-      // Gather signals from interpretations that reference this resolution
+      // Gather signals from interpretations that reference this resolution.
+      // riskFlags and suggestedAdjustments are journal-level (not per-resolution),
+      // so only include them when they explicitly mention this resolution by name —
+      // general signals are surfaced at the dashboard level instead.
+      const resolutionNameLower = resolution.name.toLowerCase();
       const riskFlags: string[] = [];
       const adjustments: string[] = [];
       let entryCount = 0;
@@ -579,14 +583,24 @@ export async function getWeeklyReviewData(weekStart: Date) {
 
         // Check if interpretation detected activity for this resolution
         const detected = interp.detectedActivity as Record<string, string> | null;
+        const hasActivity =
+          (detected && detected[resolution.id] && detected[resolution.id] !== 'NONE') ||
+          entry.linkedResolutionIds.includes(resolution.id);
         if (detected && detected[resolution.id] && detected[resolution.id] !== 'NONE') {
           entryCount++;
         }
 
-        // Collect risk flags and adjustments from entries linked to this resolution
-        if (entry.linkedResolutionIds.includes(resolution.id) || (detected && detected[resolution.id] && detected[resolution.id] !== 'NONE')) {
-          riskFlags.push(...interp.riskFlags.filter((f) => !riskFlags.includes(f)));
-          if (interp.suggestedAdjustments) {
+        if (hasActivity) {
+          // Only include flags that explicitly mention this resolution by name
+          const relevantFlags = interp.riskFlags.filter(
+            (f) => f.toLowerCase().includes(resolutionNameLower) && !riskFlags.includes(f)
+          );
+          riskFlags.push(...relevantFlags);
+
+          if (
+            interp.suggestedAdjustments &&
+            interp.suggestedAdjustments.toLowerCase().includes(resolutionNameLower)
+          ) {
             adjustments.push(interp.suggestedAdjustments);
           }
         }

@@ -1,4 +1,4 @@
-import { generateObject } from 'ai';
+import { generateText, Output } from 'ai';
 import { z } from 'zod';
 import { prisma } from '@/lib/db/client';
 import { getAIModel, validateProviderConfig, providerTypeToProvider, type AIProvider } from './providers';
@@ -130,9 +130,9 @@ export async function analyzeJournalEntry(
       try {
         console.log(`🤖 Calling ${selectedProvider} API (attempt ${attempts}/${maxAttempts})...`);
 
-        const generateOptions: Parameters<typeof generateObject>[0] = {
+        const generateOptions: Parameters<typeof generateText>[0] = {
           model,
-          schema,
+          output: Output.object({ schema }),
           system: getJournalAnalysisSystemPrompt(),
           prompt: getJournalAnalysisUserPrompt(journalEntry.rawText, resolutionContexts),
         };
@@ -142,9 +142,9 @@ export async function analyzeJournalEntry(
           generateOptions.temperature = 0.3;
         }
 
-        const { object } = await generateObject(generateOptions);
+        const { output } = await generateText(generateOptions);
 
-        analysisResult = object as AIAnalysisResponse;
+        analysisResult = output as AIAnalysisResponse;
         console.log(`✓ AI analysis successful on attempt ${attempts}`);
         break;
       } catch (error) {

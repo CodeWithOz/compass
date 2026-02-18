@@ -490,6 +490,8 @@ export async function getWeeklyReviewData(weekStart: Date) {
   try {
     const normalizedStart = startOfDay(startOfWeek(weekStart, { weekStartsOn: 0 }));
     const weekEnd = endOfDay(addDays(normalizedStart, 6));
+    const prevWeekStart = addDays(normalizedStart, -7);
+    const prevWeekEnd = endOfDay(addDays(normalizedStart, -1));
 
     // Get all active resolutions
     const resolutions = await prisma.resolution.findMany({
@@ -518,15 +520,25 @@ export async function getWeeklyReviewData(weekStart: Date) {
       orderBy: { timestamp: 'desc' },
     });
 
-    // Get daily activities for this week
-    const dailyActivities = await prisma.dailyActivity.findMany({
-      where: {
-        date: {
-          gte: normalizedStart,
-          lte: weekEnd,
+    // Get daily activities for this week and the prior week (for trend comparison)
+    const [dailyActivities, previousDailyActivities] = await Promise.all([
+      prisma.dailyActivity.findMany({
+        where: {
+          date: {
+            gte: normalizedStart,
+            lte: weekEnd,
+          },
         },
-      },
-    });
+      }),
+      prisma.dailyActivity.findMany({
+        where: {
+          date: {
+            gte: prevWeekStart,
+            lte: prevWeekEnd,
+          },
+        },
+      }),
+    ]);
 
     type WeeklyResolutionReview = {
       resolution: {
@@ -547,11 +559,14 @@ export async function getWeeklyReviewData(weekStart: Date) {
     const reviews: WeeklyResolutionReview[] = [];
 
     for (const resolution of resolutions) {
-      // Get activities for this resolution this week
+      // Get activities for this resolution this week and last week
       const resActivities = dailyActivities.filter((a) => a.resolutionId === resolution.id);
       const fullDays = resActivities.filter((a) => a.activityLevel === 'FULL').length;
       const partialDays = resActivities.filter((a) => a.activityLevel === 'PARTIAL').length;
       const activeDays = fullDays + partialDays;
+
+      const prevResActivities = previousDailyActivities.filter((a) => a.resolutionId === resolution.id);
+      const prevActiveDays = prevResActivities.filter((a) => a.activityLevel !== 'NONE').length;
 
       // Gather signals from interpretations that reference this resolution
       const riskFlags: string[] = [];
@@ -577,10 +592,11 @@ export async function getWeeklyReviewData(weekStart: Date) {
         }
       }
 
-      // Determine momentum trend based on activity
+      // Determine momentum trend by comparing this week vs last week
       let momentumTrend: 'GROWING' | 'STABLE' | 'DECLINING' = 'STABLE';
-      if (activeDays >= 4) momentumTrend = 'GROWING';
-      else if (activeDays === 0 && entryCount === 0) momentumTrend = 'DECLINING';
+      if (activeDays === 0 && entryCount === 0) momentumTrend = 'DECLINING';
+      else if (activeDays > prevActiveDays) momentumTrend = 'GROWING';
+      else if (activeDays < prevActiveDays) momentumTrend = 'DECLINING';
 
       reviews.push({
         resolution: {

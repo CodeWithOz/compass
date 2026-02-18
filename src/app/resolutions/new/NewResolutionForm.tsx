@@ -39,12 +39,15 @@ export function NewResolutionForm() {
         type: formData.type,
         constraints: formData.constraints || undefined,
         successSignals: formData.successSignals || undefined,
-        targetDate: (() => {
-          if (!formData.targetDate) return undefined;
-          const [year, month, day] = formData.targetDate.split('-').map(Number);
-          return new Date(year, month - 1, day);
-        })(),
-        exitCriteria: formData.exitCriteria || undefined,
+        targetDate: formData.type === 'MEASURABLE_OUTCOME' && formData.targetDate
+          ? (() => {
+              const [year, month, day] = formData.targetDate.split('-').map(Number);
+              return new Date(Date.UTC(year, month - 1, day));
+            })()
+          : undefined,
+        exitCriteria: formData.type === 'EXPLORATORY_TRACK'
+          ? (formData.exitCriteria || undefined)
+          : undefined,
       });
 
       if (!result.success) {

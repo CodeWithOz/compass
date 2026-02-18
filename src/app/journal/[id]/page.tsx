@@ -74,6 +74,7 @@ export default async function JournalEntryPage({
               weekday: 'long',
               month: 'long',
               day: 'numeric',
+              year: 'numeric',
             })}
           </h1>
           <p className="text-sm text-muted-foreground italic">

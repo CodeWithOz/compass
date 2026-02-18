@@ -197,7 +197,7 @@ install_deps() {
 # ---------------------------------------------------------------------------
 run_prisma() {
   info "Running Prisma migrations…"
-  npx prisma migrate deploy 2>/dev/null || npx prisma migrate dev --name init 2>/dev/null
+  npx prisma migrate deploy 2>/dev/null || npx prisma migrate dev --name init
   ok "Migrations applied"
 
   info "Generating Prisma client…"

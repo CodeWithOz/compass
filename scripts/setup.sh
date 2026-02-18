@@ -201,9 +201,7 @@ install_deps() {
 # ---------------------------------------------------------------------------
 run_prisma() {
   info "Running Prisma migrations…"
-  deploy_output=$(npx prisma migrate deploy 2>&1)
-  deploy_exit=$?
-  if [ $deploy_exit -eq 0 ]; then
+  if deploy_output=$(npx prisma migrate deploy 2>&1); then
     ok "Migrations applied"
   else
     # migrate deploy failed — check if it's the expected "no migrations yet" case

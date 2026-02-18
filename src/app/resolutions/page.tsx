@@ -22,7 +22,7 @@ export default async function ResolutionsPage({
   let resolutionsResult, archivedResult;
   if (status === 'ARCHIVED') {
     resolutionsResult = await getResolutions('ARCHIVED').catch((e) => { console.error('Failed to fetch resolutions:', e); return null; });
-    archivedResult = resolutionsResult;
+    archivedResult = null;
   } else {
     [resolutionsResult, archivedResult] = await Promise.all([
       getResolutions(status).catch((e) => { console.error('Failed to fetch resolutions:', e); return null; }),

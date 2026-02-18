@@ -22,7 +22,6 @@ export default async function SettingsPage() {
           <h2 className="text-2xl font-bold tracking-tight mb-2">Compass Configuration</h2>
           <p className="text-muted-foreground leading-relaxed">
             Manage your personal data and AI integrations.
-            All data is processed locally where possible.
           </p>
         </div>
 

@@ -20,13 +20,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const validProviders: AIProvider[] = ['claude', 'openai', 'gemini'];
+    if (provider !== undefined && !validProviders.includes(provider)) {
+      return NextResponse.json(
+        { error: `Invalid provider. Must be one of: ${validProviders.join(', ')}` },
+        { status: 400 }
+      );
+    }
+
     const result = await createJournalEntry(
       {
         rawText,
         linkedResolutionIds: linkedResolutionIds || [],
         idempotencyKey,
       },
-      provider as AIProvider
+      provider as AIProvider | undefined
     );
 
     if (!result.success) {
@@ -66,15 +74,24 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
 
     const resolutionId = searchParams.get('resolutionId') || undefined;
-    const startDate = searchParams.get('startDate')
-      ? new Date(searchParams.get('startDate')!)
-      : undefined;
-    const endDate = searchParams.get('endDate')
-      ? new Date(searchParams.get('endDate')!)
-      : undefined;
-    const limit = searchParams.get('limit')
-      ? parseInt(searchParams.get('limit')!, 10)
-      : 50;
+
+    const startDateRaw = searchParams.get('startDate');
+    const startDate = startDateRaw ? new Date(startDateRaw) : undefined;
+    if (startDate && isNaN(startDate.getTime())) {
+      return NextResponse.json({ error: 'Invalid startDate' }, { status: 400 });
+    }
+
+    const endDateRaw = searchParams.get('endDate');
+    const endDate = endDateRaw ? new Date(endDateRaw) : undefined;
+    if (endDate && isNaN(endDate.getTime())) {
+      return NextResponse.json({ error: 'Invalid endDate' }, { status: 400 });
+    }
+
+    const limitRaw = searchParams.get('limit');
+    const limit = limitRaw ? parseInt(limitRaw, 10) : 50;
+    if (isNaN(limit) || limit < 1) {
+      return NextResponse.json({ error: 'Invalid limit' }, { status: 400 });
+    }
 
     const result = await getJournalEntries({
       resolutionId,

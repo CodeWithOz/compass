@@ -19,6 +19,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { entryId, entryIds, provider, analyzePending } = body;
 
+    const validProviders: AIProvider[] = ['claude', 'openai', 'gemini'];
+    if (provider !== undefined && !validProviders.includes(provider)) {
+      return NextResponse.json(
+        { error: `Invalid provider. Must be one of: ${validProviders.join(', ')}` },
+        { status: 400 }
+      );
+    }
+
     // Single entry re-analysis
     if (entryId) {
       const result = await triggerReanalysis(entryId, provider as AIProvider);

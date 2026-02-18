@@ -23,6 +23,7 @@ export function ProviderSelector({ value, onChange, disabled }: ProviderSelector
       >
         <option value="claude">Claude (Anthropic)</option>
         <option value="openai">OpenAI GPT-4</option>
+        <option value="gemini">Gemini (Google)</option>
       </select>
       <p className="text-xs text-muted-foreground">
         Choose which AI model to use for journal analysis

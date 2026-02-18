@@ -37,7 +37,10 @@ export function SystemPreferencesSection({
     if (setting === 'reflectiveReminders') setReflectiveReminders(value);
 
     try {
-      await updateSettings({ [setting]: value });
+      const result = await updateSettings({ [setting]: value });
+      if (!result.success) {
+        throw new Error(result.error ?? 'Failed to update setting');
+      }
     } catch {
       if (setting === 'experimentalPhases') setExperimentalPhases(previous);
       if (setting === 'hardMode') setHardMode(previous);

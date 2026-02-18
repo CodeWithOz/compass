@@ -18,7 +18,7 @@ export default async function WeeklyReviewPage({
   const parsedWeek = parseInt(weekParam || '0', 10);
   const weekOffset = Number.isFinite(parsedWeek) ? parsedWeek : 0;
 
-  const currentWeekStart = addWeeks(startOfWeek(new Date(), { weekStartsOn: 1 }), weekOffset);
+  const currentWeekStart = addWeeks(startOfWeek(new Date(), { weekStartsOn: 0 }), weekOffset); // Sunday, consistent with heatmap
   const canGoForward = weekOffset < 0;
   const previousWeek = weekOffset - 1;
   const nextWeek = weekOffset + 1;

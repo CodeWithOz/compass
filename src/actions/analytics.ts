@@ -16,7 +16,7 @@ import { startOfWeek, startOfDay, endOfDay, addDays, format } from 'date-fns';
 export async function getWeeklySummary(weekStart: Date, resolutionId?: string) {
   try {
     // Normalize to start of week
-    const normalizedWeekStart = startOfWeek(weekStart, { weekStartsOn: 1 }); // Monday
+    const normalizedWeekStart = startOfWeek(weekStart, { weekStartsOn: 0 }); // Sunday, consistent with heatmap
 
     const summaries = await prisma.weeklySummary.findMany({
       where: {

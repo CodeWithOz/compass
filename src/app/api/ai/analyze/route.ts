@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { triggerReanalysis, getEntriesPendingAnalysis } from '@/actions/journal';
-import { batchAnalyzeEntries } from '@/lib/ai/analyze';
+import { enqueueAnalysis } from '@/lib/queue/analysis-queue';
 import type { AIProvider } from '@/lib/ai/providers';
 
 /**
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Single entry re-analysis
+    // Single entry re-analysis (small, keep synchronous)
     if (entryId) {
       const result = await triggerReanalysis(entryId, provider as AIProvider);
 
@@ -41,17 +41,19 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Batch analysis
+    // Batch analysis — enqueue each entry to avoid blocking the HTTP response
     if (entryIds && Array.isArray(entryIds)) {
-      await batchAnalyzeEntries(entryIds, provider as AIProvider);
+      for (const id of entryIds) {
+        await enqueueAnalysis(id, provider as AIProvider | undefined);
+      }
 
-      return NextResponse.json({
-        success: true,
-        message: `Batch analysis triggered for ${entryIds.length} entries`,
-      });
+      return NextResponse.json(
+        { success: true, message: `Accepted - analysis started for ${entryIds.length} entries` },
+        { status: 202 }
+      );
     }
 
-    // Analyze all pending entries
+    // Analyze all pending entries — enqueue to avoid long-running HTTP response
     if (analyzePending) {
       const pendingResult = await getEntriesPendingAnalysis(100);
 
@@ -71,12 +73,14 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      await batchAnalyzeEntries(pendingIds, provider as AIProvider);
+      for (const id of pendingIds) {
+        await enqueueAnalysis(id, provider as AIProvider | undefined);
+      }
 
-      return NextResponse.json({
-        success: true,
-        message: `Batch analysis triggered for ${pendingIds.length} pending entries`,
-      });
+      return NextResponse.json(
+        { success: true, message: `Accepted - analysis started for ${pendingIds.length} pending entries` },
+        { status: 202 }
+      );
     }
 
     return NextResponse.json(
@@ -93,18 +97,18 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * GET /api/ai/analyze/pending
+ * GET /api/ai/analyze
  *
  * Get list of entries pending AI analysis
  */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const limit = searchParams.get('limit')
-      ? parseInt(searchParams.get('limit')!, 10)
-      : 20;
+    const limitRaw = searchParams.get('limit');
+    const limit = limitRaw ? parseInt(limitRaw, 10) : 20;
+    const safeLimit = Number.isFinite(limit) && limit > 0 ? limit : 20;
 
-    const result = await getEntriesPendingAnalysis(limit);
+    const result = await getEntriesPendingAnalysis(safeLimit);
 
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 500 });

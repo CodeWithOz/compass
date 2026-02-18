@@ -259,7 +259,7 @@ export async function reanalyzeJournalEntry(
   provider: AIProvider
 ): Promise<void> {
   console.log(`Re-analyzing journal entry ${journalEntryId} with ${provider}...`);
-  await analyzeJournalEntry(journalEntryId, provider);
+  await analyzeJournalEntry(journalEntryId, provider, { throwOnError: true });
 }
 
 /**
@@ -277,13 +277,26 @@ export async function batchAnalyzeEntries(
 ): Promise<void> {
   console.log(`Batch analyzing ${journalEntryIds.length} entries with concurrency ${concurrency}...`);
 
+  const failed: string[] = [];
+
   // Process in batches to avoid overwhelming the AI API
   for (let i = 0; i < journalEntryIds.length; i += concurrency) {
     const batch = journalEntryIds.slice(i, i + concurrency);
-    await Promise.allSettled(
-      batch.map((entryId) => analyzeJournalEntry(entryId, provider))
+    const results = await Promise.allSettled(
+      batch.map((entryId) => analyzeJournalEntry(entryId, provider, { throwOnError: true }))
     );
+    results.forEach((result, index) => {
+      if (result.status === 'rejected') {
+        const entryId = batch[index];
+        console.error(`❌ Failed to analyze entry ${entryId}:`, result.reason);
+        failed.push(entryId);
+      }
+    });
   }
 
-  console.log(`✅ Batch analysis complete`);
+  if (failed.length > 0) {
+    console.error(`⚠️ Batch analysis complete with ${failed.length} failure(s): ${failed.join(', ')}`);
+  } else {
+    console.log(`✅ Batch analysis complete`);
+  }
 }

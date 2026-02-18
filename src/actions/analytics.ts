@@ -594,9 +594,9 @@ export async function getWeeklyReviewData(weekStart: Date) {
 
       // Determine momentum trend by comparing this week vs last week
       let momentumTrend: 'GROWING' | 'STABLE' | 'DECLINING' = 'STABLE';
-      if (activeDays === 0 && entryCount === 0) momentumTrend = 'DECLINING';
-      else if (activeDays > prevActiveDays) momentumTrend = 'GROWING';
+      if (activeDays > prevActiveDays) momentumTrend = 'GROWING';
       else if (activeDays < prevActiveDays) momentumTrend = 'DECLINING';
+      // Equal activeDays (including both-zero) → STABLE (default)
 
       reviews.push({
         resolution: {

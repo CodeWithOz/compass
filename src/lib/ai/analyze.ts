@@ -54,7 +54,8 @@ function buildAnalysisSchema(resolutionIds: string[]) {
  */
 export async function analyzeJournalEntry(
   journalEntryId: string,
-  provider?: AIProvider
+  provider?: AIProvider,
+  options?: { throwOnError?: boolean }
 ): Promise<void> {
   try {
     // Get provider from settings if not specified
@@ -191,8 +192,10 @@ export async function analyzeJournalEntry(
     console.log(`✅ Successfully analyzed journal entry ${journalEntryId} with ${selectedProvider}`);
   } catch (error) {
     console.error(`❌ Error analyzing journal entry ${journalEntryId}:`, error);
-    // Don't throw - we don't want to break the system if AI analysis fails
-    // The journal entry is already saved, analysis can be retried later
+    if (options?.throwOnError) {
+      throw error;
+    }
+    // By default, don't throw - the journal entry is already saved and analysis can be retried
   }
 }
 

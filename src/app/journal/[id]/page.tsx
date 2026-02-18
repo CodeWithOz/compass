@@ -94,14 +94,23 @@ export default async function JournalEntryPage({
                   Honest Momentum Report
                 </h2>
               </div>
-              {latestInterpretation && (
-                <div className="text-right">
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Status</p>
-                  <Badge variant="default" className="bg-green-600">
-                    On Track
-                  </Badge>
-                </div>
-              )}
+              {latestInterpretation && (() => {
+                const signalConfig: Record<string, { label: string; className: string }> = {
+                  HIGH: { label: 'High', className: 'bg-green-600' },
+                  MEDIUM: { label: 'Medium', className: 'bg-primary' },
+                  LOW: { label: 'Low', className: 'bg-amber-600' },
+                  NONE: { label: 'No signal', className: 'bg-muted text-muted-foreground' },
+                };
+                const signal = signalConfig[latestInterpretation.momentumSignal] ?? { label: latestInterpretation.momentumSignal, className: 'bg-muted text-muted-foreground' };
+                return (
+                  <div className="text-right">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Status</p>
+                    <Badge variant="default" className={signal.className}>
+                      {signal.label}
+                    </Badge>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Entry text */}

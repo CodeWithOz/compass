@@ -16,9 +16,18 @@ COPY .next/standalone ./
 COPY public ./public
 COPY .next/static ./.next/static
 
+# Prisma schema + migrations for running migrations at startup
+# (standalone output includes the runtime client but not the CLI)
+COPY prisma ./prisma
+RUN npm install -g prisma@7 --ignore-scripts
+
+# Entrypoint + healthcheck scripts (run migrations before start)
+COPY scripts ./scripts
+RUN chmod +x ./scripts/entrypoint.sh ./scripts/healthcheck.sh
+
 EXPOSE 3000
 
 HEALTHCHECK --interval=5s --timeout=5s --retries=10 --start-period=30s \
-  CMD curl -fsS http://127.0.0.1:3000/api/health || exit 1
+  CMD ./scripts/healthcheck.sh
 
-CMD ["node", "server.js"]
+CMD ["./scripts/entrypoint.sh"]

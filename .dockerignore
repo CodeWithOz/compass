@@ -23,4 +23,6 @@ tsconfig.tsbuildinfo
 .prettierrc
 components.json
 scripts
+!scripts/entrypoint.sh
+!scripts/healthcheck.sh
 system-spec

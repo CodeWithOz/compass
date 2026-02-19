@@ -67,6 +67,7 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         env:
           NODE_ENV: production
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder  # dummy: required for build but value unused at build time
         run: |
           npm ci
           npm run generate

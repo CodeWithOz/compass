@@ -1,0 +1,184 @@
+// This is your Prisma schema file
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // Connection configured in prisma.config.ts (Prisma 7)
+}
+
+model Resolution {
+  id              String   @id @default(uuid())
+  name            String
+  type            ResolutionType
+  purpose         String?
+  constraints     String?
+  successSignals  String?  @map("success_signals")
+  failureModes    String?  @map("failure_modes")
+  nonGoals        String?  @map("non_goals")
+  status          ResolutionStatus @default(ACTIVE)
+
+  // Type-specific fields
+  targetDate      DateTime? @map("target_date")
+  exitCriteria    String?   @map("exit_criteria")
+
+  // Phase support
+  currentPhaseId  String?   @map("current_phase_id")
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  dailyActivities DailyActivity[]
+  weeklySummaries WeeklySummary[]
+  phases          ResolutionPhase[] @relation("ResolutionPhases")
+  currentPhase    ResolutionPhase? @relation("CurrentPhase", fields: [currentPhaseId], references: [id])
+
+  @@map("resolutions")
+}
+
+enum ResolutionType {
+  HABIT_BUNDLE
+  MEASURABLE_OUTCOME
+  EXPLORATORY_TRACK
+}
+
+enum ResolutionStatus {
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+model ResolutionPhase {
+  id              String   @id @default(uuid())
+  resolutionId    String   @map("resolution_id")
+  name            String
+  description     String?
+  startDate       DateTime @map("start_date")
+  endDate         DateTime? @map("end_date")
+
+  // Phase-specific expectations
+  expectedFrequency String? @map("expected_frequency")
+  intensityLevel    Int?    @map("intensity_level")
+
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  resolution      Resolution @relation("ResolutionPhases", fields: [resolutionId], references: [id])
+  activeResolutions Resolution[] @relation("CurrentPhase")
+
+  @@map("resolution_phases")
+}
+
+model JournalEntry {
+  id                  String   @id @default(uuid())
+  timestamp           DateTime @default(now())
+  rawText             String   @map("raw_text") @db.Text
+  linkedResolutionIds String[] @map("linked_resolution_ids")
+
+  interpretations     AIInterpretation[]
+
+  @@map("journal_entries")
+}
+
+model AIInterpretation {
+  id                    String   @id @default(uuid())
+  journalEntryId        String   @map("journal_entry_id")
+  provider              String
+  detectedActivity      Json     @map("detected_activity")
+  momentumSignal        MomentumSignal @map("momentum_signal")
+  riskFlags             String[] @map("risk_flags")
+  suggestedAdjustments  String?  @map("suggested_adjustments") @db.Text
+
+  // Strategic reframing as first-class feature
+  reframeType           ReframeType? @map("reframe_type")
+  reframeReason         String?      @map("reframe_reason") @db.Text
+  reframeSuggestion     String?      @map("reframe_suggestion") @db.Text
+
+  createdAt             DateTime @default(now()) @map("created_at")
+
+  journalEntry          JournalEntry @relation(fields: [journalEntryId], references: [id])
+
+  @@map("ai_interpretations")
+}
+
+enum MomentumSignal {
+  NONE
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum ReframeType {
+  MISALIGNMENT
+  STAGNATION
+  OVER_OPTIMIZATION
+  PHASE_MISMATCH
+  EXIT_SIGNAL
+}
+
+model DailyActivity {
+  id            String   @id @default(uuid())
+  date          DateTime @db.Date
+  resolutionId  String   @map("resolution_id")
+  activityLevel ActivityLevel @map("activity_level")
+
+  resolution    Resolution @relation(fields: [resolutionId], references: [id])
+
+  @@unique([date, resolutionId])
+  @@map("daily_activity")
+}
+
+enum ActivityLevel {
+  NONE
+  PARTIAL
+  FULL
+}
+
+model WeeklySummary {
+  id              String   @id @default(uuid())
+  weekStart       DateTime @map("week_start") @db.Date
+  resolutionId    String   @map("resolution_id")
+  engagementScore Int      @map("engagement_score")
+  momentumTrend   MomentumTrend @map("momentum_trend")
+  summaryText     String?  @map("summary_text") @db.Text
+
+  resolution      Resolution @relation(fields: [resolutionId], references: [id])
+
+  @@unique([weekStart, resolutionId])
+  @@map("weekly_summaries")
+}
+
+enum MomentumTrend {
+  DECLINING
+  STABLE
+  GROWING
+}
+
+model UserSettings {
+  id        String   @id @default(uuid())
+  userId    String   @unique @default("default") @map("user_id")
+
+  // AI Configuration
+  aiProvider       AIProviderType @default(CLAUDE) @map("ai_provider")
+  anthropicApiKey  String?        @map("anthropic_api_key")
+  openaiApiKey     String?        @map("openai_api_key")
+  geminiApiKey     String?        @map("gemini_api_key")
+
+  // System Preferences
+  experimentalPhases   Boolean @default(true) @map("experimental_phases")
+  hardMode             Boolean @default(false) @map("hard_mode")
+  reflectiveReminders  Boolean @default(true) @map("reflective_reminders")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("user_settings")
+}
+
+enum AIProviderType {
+  CLAUDE
+  OPENAI
+  GEMINI
+}

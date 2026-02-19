@@ -41,6 +41,8 @@ jobs:
               - 'package.json'
               - 'package-lock.json'
               - 'next.config.ts'
+              - 'Dockerfile'
+              - '.dockerignore'
             workflow:
               - '.github/workflows/deploy-app*.yml'
 

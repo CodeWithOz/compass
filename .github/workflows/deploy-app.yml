@@ -10,6 +10,8 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'next.config.ts'
+      - 'Dockerfile'
+      - '.dockerignore'
       - '.github/workflows/deploy-app*.yml'
   workflow_dispatch:
 

@@ -38,6 +38,7 @@ jobs:
               - 'prisma/**'
             db_viewer:
               - 'Dockerfile.db_viewer'
+              - '.dockerignore'
             workflow:
               - '.github/workflows/deploy-db-viewer*.yml'
 

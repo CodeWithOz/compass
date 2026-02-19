@@ -1,0 +1,39 @@
+name: Deploy App (GHCR -> Coolify)
+
+on:
+  push:
+    branches: ['main', 'develop']
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'prisma/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'next.config.ts'
+      - '.github/workflows/deploy-app*.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  deploy-prod:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deploy-app-impl.yml
+    with:
+      environment: prod
+      tag_prefix: prod
+    secrets:
+      coolify_hook: ${{ secrets.COOLIFY_APP_PROD_HOOK }}
+      coolify_token: ${{ secrets.COOLIFY_DEPLOY_TOKEN_PROD }}
+
+  deploy-dev:
+    if: github.ref == 'refs/heads/develop'
+    uses: ./.github/workflows/deploy-app-impl.yml
+    with:
+      environment: dev
+      tag_prefix: dev
+    secrets:
+      coolify_hook: ${{ secrets.COOLIFY_APP_DEV_HOOK }}
+      coolify_token: ${{ secrets.COOLIFY_DEPLOY_TOKEN_DEV }}

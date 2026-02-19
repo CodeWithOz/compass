@@ -1,0 +1,7 @@
+FROM node:24-alpine
+WORKDIR /app
+COPY prisma ./prisma
+COPY package*.json ./
+RUN npm ci --no-audit --no-fund
+RUN npx prisma generate
+CMD ["npx", "prisma", "studio"]

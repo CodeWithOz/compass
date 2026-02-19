@@ -11,6 +11,7 @@ Dockerfile
 .dockerignore
 src
 *.ts
+!prisma.config.ts
 *.tsx
 *.json
 !package.json

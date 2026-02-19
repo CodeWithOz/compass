@@ -5,6 +5,7 @@ on:
     branches: ['main', 'develop']
     paths:
       - 'prisma/**'
+      - 'prisma.config.ts'
       - 'Dockerfile.db_viewer'
       - '.dockerignore'
       - '.github/workflows/deploy-db-viewer*.yml'

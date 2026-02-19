@@ -10,7 +10,7 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 echo "[prestart] running migrations"
-prisma migrate deploy
+npx prisma migrate deploy
 echo "[prestart] done"
 
 rm -f "$MARKER"

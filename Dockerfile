@@ -16,9 +16,10 @@ COPY .next/standalone ./
 COPY public ./public
 COPY .next/static ./.next/static
 
-# Prisma schema + migrations for running migrations at startup
+# Prisma schema, config + migrations for running migrations at startup
 # (standalone output includes the runtime client but not the CLI)
 COPY prisma ./prisma
+COPY prisma.config.ts* ./
 RUN npm install -g prisma@7 --ignore-scripts
 
 # Entrypoint + healthcheck scripts (run migrations before start)

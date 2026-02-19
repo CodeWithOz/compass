@@ -36,6 +36,8 @@ jobs:
           filters: |
             prisma:
               - 'prisma/**'
+            prisma_config:
+              - 'prisma.config.ts'
             db_viewer:
               - 'Dockerfile.db_viewer'
               - '.dockerignore'
@@ -49,6 +51,7 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             run=true
           elif [ "${{ steps.changed.outputs.prisma }}" = "true" ] \
+            || [ "${{ steps.changed.outputs.prisma_config }}" = "true" ] \
             || [ "${{ steps.changed.outputs.db_viewer }}" = "true" ] \
             || [ "${{ steps.changed.outputs.workflow }}" = "true" ]; then
             run=true

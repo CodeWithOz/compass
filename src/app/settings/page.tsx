@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import React from 'react';
 import { Compass } from 'lucide-react';
 import { AppHeader } from '@/components/layout/AppHeader';

@@ -20,7 +20,7 @@ COPY .next/static ./.next/static
 # (standalone output includes the runtime client but not the CLI)
 COPY prisma ./prisma
 COPY prisma.config.ts* ./
-RUN npm install -g prisma@7 --ignore-scripts
+RUN npm install --no-save --ignore-scripts prisma@7
 
 # Entrypoint + healthcheck scripts (run migrations before start)
 COPY scripts ./scripts

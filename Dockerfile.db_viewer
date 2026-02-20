@@ -5,4 +5,4 @@ COPY prisma.config.ts* ./
 COPY package*.json ./
 RUN npm ci --no-audit --no-fund
 RUN npx prisma generate
-CMD ["npx", "prisma", "studio"]
+CMD ["npx", "prisma", "studio", "--browser=none"]

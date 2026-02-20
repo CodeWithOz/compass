@@ -1,9 +1,4 @@
-import dotenv from 'dotenv'
-import { defineConfig, env } from 'prisma/config'
-
-// Load .env.local first (Next.js convention), then .env as fallback
-dotenv.config({ path: '.env.local' })
-dotenv.config()
+import { defineConfig } from 'prisma/config'
 
 export default defineConfig({
   schema: 'prisma/schema.prisma',
@@ -11,6 +6,6 @@ export default defineConfig({
     path: 'prisma/migrations',
   },
   datasource: {
-    url: env('DATABASE_URL'),
+    url: process.env.DATABASE_URL,
   },
 })

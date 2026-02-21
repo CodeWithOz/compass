@@ -55,7 +55,7 @@ function buildAnalysisSchema(resolutionIds: string[]) {
 export async function analyzeJournalEntry(
   journalEntryId: string,
   provider?: AIProvider,
-  options?: { throwOnError?: boolean }
+  options?: { throwOnError?: boolean; maxAttempts?: number }
 ): Promise<void> {
   try {
     // Get provider from settings if not specified
@@ -123,7 +123,7 @@ export async function analyzeJournalEntry(
     // Generate analysis with retry logic
     let analysisResult: AIAnalysisResponse | null = null;
     let attempts = 0;
-    const maxAttempts = 3;
+    const maxAttempts = options?.maxAttempts ?? 3;
 
     while (attempts < maxAttempts) {
       attempts++;
@@ -167,6 +167,12 @@ export async function analyzeJournalEntry(
     if (!analysisResult) {
       throw new Error('AI analysis failed to produce results');
     }
+
+    // Remove any existing interpretation for this entry+provider before creating
+    // so re-analysis replaces rather than duplicates the previous result
+    await prisma.aIInterpretation.deleteMany({
+      where: { journalEntryId, provider: selectedProvider },
+    });
 
     // Store AI interpretation in database
     await prisma.aIInterpretation.create({

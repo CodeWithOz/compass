@@ -83,8 +83,9 @@ async function processQueue(): Promise<void> {
     try {
       console.log(`🔄 Processing analysis for entry ${job.entryId} (attempt ${job.attempts + 1}/${job.maxAttempts})`);
 
-      // Run AI analysis — throwOnError so the catch block can handle retries
-      await analyzeJournalEntry(job.entryId, job.provider, { throwOnError: true });
+      // Run AI analysis — queue owns retry logic; disable internal retries to avoid
+      // up to 9× calls (3 queue attempts × 3 internal attempts)
+      await analyzeJournalEntry(job.entryId, job.provider, { throwOnError: true, maxAttempts: 1 });
 
       console.log(`✅ Analysis complete for entry ${job.entryId}`);
     } catch (error) {

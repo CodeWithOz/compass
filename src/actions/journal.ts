@@ -40,27 +40,22 @@ export async function createJournalEntry(
     // Validate input
     const validated = CreateJournalEntrySchema.parse(data);
 
-    // Check for duplicate if idempotency key provided
+    // Check for duplicate via idempotency key — the key is used as the entry's id,
+    // so a second request with the same key will find the already-created entry.
     if (validated.idempotencyKey) {
-      // Simple idempotency: check if entry with same key exists in last 5 minutes
-      const recentDuplicate = await prisma.journalEntry.findFirst({
-        where: {
-          rawText: validated.rawText,
-          timestamp: {
-            gte: new Date(Date.now() - 5 * 60 * 1000), // Last 5 minutes
-          },
-        },
+      const existing = await prisma.journalEntry.findUnique({
+        where: { id: validated.idempotencyKey },
       });
-
-      if (recentDuplicate) {
-        console.log('Duplicate journal entry detected, returning existing entry');
-        return { success: true, data: recentDuplicate };
+      if (existing) {
+        console.log('Duplicate journal entry detected via idempotency key, returning existing entry');
+        return { success: true, data: existing };
       }
     }
 
     // Create journal entry (FAST - should be < 100ms)
     const entry = await prisma.journalEntry.create({
       data: {
+        ...(validated.idempotencyKey && { id: validated.idempotencyKey }),
         rawText: validated.rawText,
         linkedResolutionIds: validated.linkedResolutionIds,
       },

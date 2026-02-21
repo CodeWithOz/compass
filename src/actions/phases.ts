@@ -69,7 +69,7 @@ export async function updatePhase(data: z.infer<typeof UpdatePhaseSchema>) {
   try {
     // Validate input
     const validated = UpdatePhaseSchema.parse(data);
-    const { id, ...updateData } = validated;
+    const { id, resolutionId: _resolutionId, ...updateData } = validated;
 
     // Check if phase exists
     const existing = await prisma.resolutionPhase.findUnique({

@@ -1,0 +1,37 @@
+name: Deploy DB Viewer (GHCR -> Coolify)
+
+on:
+  push:
+    branches: ['main', 'develop']
+    paths:
+      - 'prisma/**'
+      - 'prisma.config.ts'
+      - 'Dockerfile.db_viewer'
+      - '.dockerignore'
+      - '.github/workflows/deploy-db-viewer*.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  deploy-prod:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deploy-db-viewer-impl.yml
+    with:
+      environment: prod
+      tag_prefix: prod
+    secrets:
+      coolify_hook: ${{ secrets.COOLIFY_DB_VIEWER_PROD_HOOK }}
+      coolify_token: ${{ secrets.COOLIFY_DEPLOY_TOKEN_PROD }}
+
+  deploy-dev:
+    if: github.ref == 'refs/heads/develop'
+    uses: ./.github/workflows/deploy-db-viewer-impl.yml
+    with:
+      environment: dev
+      tag_prefix: dev
+    secrets:
+      coolify_hook: ${{ secrets.COOLIFY_DB_VIEWER_DEV_HOOK }}
+      coolify_token: ${{ secrets.COOLIFY_DEPLOY_TOKEN_DEV }}

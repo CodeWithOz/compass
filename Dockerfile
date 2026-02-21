@@ -4,6 +4,9 @@ FROM node:24-alpine
 # curl for Coolify healthcheck
 RUN apk add --no-cache curl
 
+# Create non-root user before any file operations
+RUN addgroup -g 1001 -S appgroup && adduser -u 1001 -S appuser -G appgroup
+
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -22,9 +25,14 @@ COPY prisma ./prisma
 COPY prisma.config.ts* ./
 RUN npm install --no-save --ignore-scripts prisma@7
 
-# Entrypoint + healthcheck scripts (run migrations before start)
-COPY scripts ./scripts
+# Copy only the whitelisted script files (avoids CopyIgnoredFile warnings)
+COPY scripts/entrypoint.sh ./scripts/entrypoint.sh
+COPY scripts/healthcheck.sh ./scripts/healthcheck.sh
 RUN chmod +x ./scripts/entrypoint.sh ./scripts/healthcheck.sh
+
+# Transfer ownership to non-root user, then drop privileges
+RUN chown -R appuser:appgroup /app
+USER appuser
 
 EXPOSE 3000
 

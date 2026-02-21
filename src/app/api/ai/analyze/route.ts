@@ -29,7 +29,13 @@ export async function POST(request: NextRequest) {
 
     // Single entry re-analysis (small, keep synchronous)
     if (entryId) {
-      const result = await triggerReanalysis(entryId, provider as AIProvider);
+      if (!provider) {
+        return NextResponse.json(
+          { error: 'provider is required for single-entry re-analysis' },
+          { status: 400 }
+        );
+      }
+      const result = await triggerReanalysis(entryId, provider);
 
       if (!result.success) {
         return NextResponse.json({ error: result.error }, { status: 500 });

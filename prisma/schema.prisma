@@ -34,7 +34,7 @@ model Resolution {
   dailyActivities DailyActivity[]
   weeklySummaries WeeklySummary[]
   phases          ResolutionPhase[] @relation("ResolutionPhases")
-  currentPhase    ResolutionPhase? @relation("CurrentPhase", fields: [currentPhaseId], references: [id])
+  currentPhase    ResolutionPhase? @relation("CurrentPhase", fields: [currentPhaseId], references: [id], onDelete: SetNull)
 
   @@map("resolutions")
 }
@@ -65,7 +65,7 @@ model ResolutionPhase {
 
   createdAt       DateTime @default(now()) @map("created_at")
 
-  resolution      Resolution @relation("ResolutionPhases", fields: [resolutionId], references: [id])
+  resolution      Resolution @relation("ResolutionPhases", fields: [resolutionId], references: [id], onDelete: Cascade)
   activeResolutions Resolution[] @relation("CurrentPhase")
 
   @@map("resolution_phases")
@@ -98,7 +98,7 @@ model AIInterpretation {
 
   createdAt             DateTime @default(now()) @map("created_at")
 
-  journalEntry          JournalEntry @relation(fields: [journalEntryId], references: [id])
+  journalEntry          JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
 
   @@map("ai_interpretations")
 }
@@ -124,7 +124,7 @@ model DailyActivity {
   resolutionId  String   @map("resolution_id")
   activityLevel ActivityLevel @map("activity_level")
 
-  resolution    Resolution @relation(fields: [resolutionId], references: [id])
+  resolution    Resolution @relation(fields: [resolutionId], references: [id], onDelete: Cascade)
 
   @@unique([date, resolutionId])
   @@map("daily_activity")
@@ -144,7 +144,7 @@ model WeeklySummary {
   momentumTrend   MomentumTrend @map("momentum_trend")
   summaryText     String?  @map("summary_text") @db.Text
 
-  resolution      Resolution @relation(fields: [resolutionId], references: [id])
+  resolution      Resolution @relation(fields: [resolutionId], references: [id], onDelete: Cascade)
 
   @@unique([weekStart, resolutionId])
   @@map("weekly_summaries")

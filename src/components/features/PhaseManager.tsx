@@ -44,8 +44,8 @@ export function PhaseManager({
         resolutionId,
         name: formData.name,
         description: formData.description || undefined,
-        startDate: new Date(formData.startDate),
-        endDate: formData.endDate ? new Date(formData.endDate) : undefined,
+        startDate: (() => { const [y, m, d] = formData.startDate.split('-').map(Number); return new Date(y, m - 1, d); })(),
+        endDate: formData.endDate ? (() => { const [y, m, d] = formData.endDate.split('-').map(Number); return new Date(y, m - 1, d); })() : undefined,
         expectedFrequency: formData.expectedFrequency || undefined,
         intensityLevel: formData.intensityLevel,
       });
@@ -129,8 +129,8 @@ export function PhaseManager({
                 )}
                 <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
                   <span>
-                    {new Date(currentPhase.startDate).toLocaleDateString()} -{' '}
-                    {currentPhase.endDate ? new Date(currentPhase.endDate).toLocaleDateString() : 'Ongoing'}
+                    {new Date(currentPhase.startDate).toLocaleDateString(undefined, { timeZone: 'UTC' })} -{' '}
+                    {currentPhase.endDate ? new Date(currentPhase.endDate).toLocaleDateString(undefined, { timeZone: 'UTC' }) : 'Ongoing'}
                   </span>
                   {currentPhase.expectedFrequency && (
                     <span>• {currentPhase.expectedFrequency}</span>
@@ -248,8 +248,8 @@ export function PhaseManager({
                       <div className="flex-1">
                         <p className="font-medium text-sm">{phase.name}</p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {new Date(phase.startDate).toLocaleDateString()} -{' '}
-                          {phase.endDate ? new Date(phase.endDate).toLocaleDateString() : 'Ongoing'}
+                          {new Date(phase.startDate).toLocaleDateString(undefined, { timeZone: 'UTC' })} -{' '}
+                          {phase.endDate ? new Date(phase.endDate).toLocaleDateString(undefined, { timeZone: 'UTC' }) : 'Ongoing'}
                         </p>
                       </div>
                       {!isActive && (

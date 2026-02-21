@@ -5,4 +5,10 @@ COPY prisma.config.ts* ./
 COPY package*.json ./
 RUN npm ci --no-audit --no-fund
 RUN npx prisma generate
+
+# Create non-root user, transfer ownership, drop privileges
+RUN addgroup -g 1001 -S appgroup && adduser -u 1001 -S appuser -G appgroup && chown -R appuser:appgroup /app
+USER appuser
+
+EXPOSE 5555
 CMD ["npx", "prisma", "studio", "--browser=none"]

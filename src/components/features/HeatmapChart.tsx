@@ -189,15 +189,30 @@ export function HeatmapChart({ data, weeks = 52 }: HeatmapChartProps) {
               >
                 {week.map((cell, dayIdx) => {
                   const isFuture = cell.date > new Date();
+                  const cellLabel = `${levelText(cell.count)} on ${format(cell.date, 'MMM d, yyyy')}`;
                   return (
                     <div
                       key={dayIdx}
+                      role="gridcell"
+                      tabIndex={isFuture ? -1 : 0}
+                      aria-label={isFuture ? undefined : cellLabel}
                       style={{ width: CELL_SIZE, height: CELL_SIZE }}
                       className={`rounded-[2px] ${levelClass(cell.count, isFuture)} ${isFuture ? 'opacity-0' : 'cursor-pointer'}`}
                       onMouseEnter={(e) => {
                         if (!isFuture) handleMouseEnter(e, cell.count, cell.date);
                       }}
                       onMouseLeave={handleMouseLeave}
+                      onFocus={(e) => {
+                        if (!isFuture) {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setTooltip({
+                            text: cellLabel,
+                            x: rect.left + rect.width / 2,
+                            y: rect.top - 8,
+                          });
+                        }
+                      }}
+                      onBlur={handleMouseLeave}
                     />
                   );
                 })}

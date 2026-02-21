@@ -213,6 +213,8 @@ async function updateDailyActivities(
   const normalizedDate = new Date(entryDate);
   normalizedDate.setUTCHours(0, 0, 0, 0);
 
+  const levelPriority: Record<string, number> = { NONE: 0, PARTIAL: 1, FULL: 2 };
+
   // Update or create daily activity records for each resolution
   for (const [resolutionId, activityLevel] of Object.entries(detectedActivity)) {
     if (activityLevel === 'NONE') {
@@ -221,22 +223,22 @@ async function updateDailyActivities(
     }
 
     try {
-      await prisma.dailyActivity.upsert({
-        where: {
-          date_resolutionId: {
-            date: normalizedDate,
-            resolutionId,
-          },
-        },
-        update: {
-          activityLevel: activityLevel as ActivityLevel,
-        },
-        create: {
-          date: normalizedDate,
-          resolutionId,
-          activityLevel: activityLevel as ActivityLevel,
-        },
+      const existing = await prisma.dailyActivity.findUnique({
+        where: { date_resolutionId: { date: normalizedDate, resolutionId } },
+        select: { activityLevel: true },
       });
+
+      if (!existing) {
+        await prisma.dailyActivity.create({
+          data: { date: normalizedDate, resolutionId, activityLevel: activityLevel as ActivityLevel },
+        });
+      } else if (levelPriority[activityLevel] > levelPriority[existing.activityLevel]) {
+        // Only upgrade — never let a later PARTIAL overwrite an earlier FULL
+        await prisma.dailyActivity.update({
+          where: { date_resolutionId: { date: normalizedDate, resolutionId } },
+          data: { activityLevel: activityLevel as ActivityLevel },
+        });
+      }
     } catch (error) {
       console.error(
         `Error updating daily activity for resolution ${resolutionId}:`,

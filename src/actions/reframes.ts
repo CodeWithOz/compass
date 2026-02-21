@@ -83,42 +83,8 @@ export async function getActiveReframes(resolutionId?: string) {
  * @param reason - Optional reason for dismissal
  * @returns Success status
  */
-export async function dismissReframe(interpretationId: string, reason?: string) {
-  try {
-    // Verify interpretation exists and has a reframe
-    const interpretation = await prisma.aIInterpretation.findUnique({
-      where: { id: interpretationId },
-    });
-
-    if (!interpretation) {
-      throw new Error('Interpretation not found');
-    }
-
-    if (!interpretation.reframeType) {
-      throw new Error('No reframe to dismiss');
-    }
-
-    // For now, we'll just log the dismissal
-    // In the future, could add a 'dismissed' field or separate table to track this
-    console.log(
-      `🚫 Reframe dismissed: ${interpretation.reframeType} for interpretation ${interpretationId}`,
-      reason ? `Reason: ${reason}` : ''
-    );
-
-    // Could implement:
-    // await prisma.aIInterpretation.update({
-    //   where: { id: interpretationId },
-    //   data: { reframeDismissed: true, reframeDismissedAt: new Date(), reframeDismissalReason: reason }
-    // });
-
-    return { success: true };
-  } catch (error) {
-    console.error('Error dismissing reframe:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to dismiss reframe',
-    };
-  }
+export async function dismissReframe(_interpretationId: string, _reason?: string) {
+  return { success: false, error: 'Not yet implemented' };
 }
 
 /**
@@ -130,40 +96,8 @@ export async function dismissReframe(interpretationId: string, reason?: string) 
  * @param until - Date to snooze until
  * @returns Success status
  */
-export async function snoozeReframe(interpretationId: string, until: Date) {
-  try {
-    // Verify interpretation exists and has a reframe
-    const interpretation = await prisma.aIInterpretation.findUnique({
-      where: { id: interpretationId },
-    });
-
-    if (!interpretation) {
-      throw new Error('Interpretation not found');
-    }
-
-    if (!interpretation.reframeType) {
-      throw new Error('No reframe to snooze');
-    }
-
-    // For now, just log the snooze
-    console.log(
-      `⏰ Reframe snoozed until ${until.toISOString()}: ${interpretation.reframeType} for interpretation ${interpretationId}`
-    );
-
-    // Could implement:
-    // await prisma.aIInterpretation.update({
-    //   where: { id: interpretationId },
-    //   data: { reframeSnoozedUntil: until }
-    // });
-
-    return { success: true };
-  } catch (error) {
-    console.error('Error snoozing reframe:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to snooze reframe',
-    };
-  }
+export async function snoozeReframe(_interpretationId: string, _until: Date) {
+  return { success: false, error: 'Not yet implemented' };
 }
 
 /**
@@ -176,50 +110,8 @@ export async function snoozeReframe(interpretationId: string, until: Date) {
  * @param action - Description of action taken
  * @returns Success status
  */
-export async function applyReframe(interpretationId: string, action: string) {
-  try {
-    // Verify interpretation exists and has a reframe
-    const interpretation = await prisma.aIInterpretation.findUnique({
-      where: { id: interpretationId },
-    });
-
-    if (!interpretation) {
-      throw new Error('Interpretation not found');
-    }
-
-    if (!interpretation.reframeType) {
-      throw new Error('No reframe to apply');
-    }
-
-    // Log the application for audit trail
-    console.log(
-      `✅ Reframe applied: ${interpretation.reframeType} for interpretation ${interpretationId}`,
-      `Action taken: ${action}`
-    );
-
-    // Could implement:
-    // await prisma.aIInterpretation.update({
-    //   where: { id: interpretationId },
-    //   data: { reframeApplied: true, reframeAppliedAt: new Date(), reframeAction: action }
-    // });
-
-    // Could also create a reframe actions log table:
-    // await prisma.reframeAction.create({
-    //   data: {
-    //     interpretationId,
-    //     reframeType: interpretation.reframeType,
-    //     actionTaken: action,
-    //   }
-    // });
-
-    return { success: true };
-  } catch (error) {
-    console.error('Error applying reframe:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to apply reframe',
-    };
-  }
+export async function applyReframe(_interpretationId: string, _action: string) {
+  return { success: false, error: 'Not yet implemented' };
 }
 
 /**

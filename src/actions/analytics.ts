@@ -150,8 +150,12 @@ export async function getResolutionEntryCountsPerDay(
     });
 
     const counts = new Map<string, number>();
+    const seenEntryIds = new Set<string>();
     for (const interp of interpretations) {
       if (!interp.journalEntry?.timestamp) continue;
+      // Count each journal entry once per day, even if it has multiple interpretations
+      if (seenEntryIds.has(interp.journalEntryId)) continue;
+      seenEntryIds.add(interp.journalEntryId);
       const key = format(new Date(interp.journalEntry.timestamp), 'yyyy-MM-dd');
       counts.set(key, (counts.get(key) ?? 0) + 1);
     }

@@ -21,7 +21,7 @@ export async function GET() {
       { status: 200 }
     );
   } catch (error) {
-    console.error('Health check failed:', error);
+    console.error('Health check failed:', error instanceof Error ? error.name : 'Unknown error');
 
     return NextResponse.json(
       {

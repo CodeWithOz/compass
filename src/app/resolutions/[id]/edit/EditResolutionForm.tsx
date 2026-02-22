@@ -121,7 +121,16 @@ export function EditResolutionForm({ resolution }: EditResolutionFormProps) {
         <Label>What kind of resolution is this?</Label>
         <RadioGroup
           value={formData.type}
-          onValueChange={(value) => setFormData({ ...formData, type: value as ResolutionType })}
+          onValueChange={(value) => {
+            const newType = value as ResolutionType;
+            setFormData({
+              ...formData,
+              type: newType,
+              // Clear fields that belong exclusively to the previous type
+              targetDate: newType === 'MEASURABLE_OUTCOME' ? formData.targetDate : '',
+              exitCriteria: newType === 'EXPLORATORY_TRACK' ? formData.exitCriteria : '',
+            });
+          }}
           disabled={isSubmitting}
           className="flex flex-col sm:flex-row gap-4"
         >

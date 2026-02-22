@@ -78,6 +78,7 @@ export function EditResolutionForm({ resolution }: EditResolutionFormProps) {
       router.push(`/resolutions/${resolution.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update resolution');
+    } finally {
       setIsSubmitting(false);
     }
   };

@@ -1,6 +1,7 @@
 'use server';
 
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db/client';
 import { enqueueAnalysis } from '@/lib/queue/analysis-queue';
 import type { AIProvider } from '@/lib/ai/providers';
@@ -53,13 +54,34 @@ export async function createJournalEntry(
     }
 
     // Create journal entry (FAST - should be < 100ms)
-    const entry = await prisma.journalEntry.create({
-      data: {
-        ...(validated.idempotencyKey && { id: validated.idempotencyKey }),
-        rawText: validated.rawText,
-        linkedResolutionIds: validated.linkedResolutionIds,
-      },
-    });
+    // Wrap in its own try/catch to handle the race where two concurrent requests
+    // with the same idempotency key both pass the findUnique check and then one
+    // of the creates loses a P2002 unique-constraint race.
+    let entry;
+    try {
+      entry = await prisma.journalEntry.create({
+        data: {
+          ...(validated.idempotencyKey && { id: validated.idempotencyKey }),
+          rawText: validated.rawText,
+          linkedResolutionIds: validated.linkedResolutionIds,
+        },
+      });
+    } catch (createError) {
+      if (
+        validated.idempotencyKey &&
+        createError instanceof Prisma.PrismaClientKnownRequestError &&
+        createError.code === 'P2002'
+      ) {
+        const existing = await prisma.journalEntry.findUnique({
+          where: { id: validated.idempotencyKey },
+        });
+        if (existing) {
+          console.log('Duplicate journal entry detected via idempotency key (race), returning existing entry');
+          return { success: true, data: existing };
+        }
+      }
+      throw createError;
+    }
 
     // Enqueue AI analysis (NON-BLOCKING - do NOT await)
     // This runs in the background, user sees success immediately

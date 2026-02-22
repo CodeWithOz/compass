@@ -94,15 +94,12 @@ export async function analyzeJournalEntry(
 
     if (resolutions.length === 0) {
       console.warn(`No active resolutions found for journal entry ${journalEntryId}`);
-      // Still create an interpretation record but with minimal data
-      await prisma.aIInterpretation.create({
-        data: {
-          journalEntryId,
-          provider: selectedProvider,
-          detectedActivity: {},
-          momentumSignal: 'NONE',
-          riskFlags: [],
-        },
+      // Upsert so re-analysis doesn't violate the @@unique([journalEntryId, provider]) constraint
+      const minimalData = { detectedActivity: {}, momentumSignal: 'NONE' as const, riskFlags: [] };
+      await prisma.aIInterpretation.upsert({
+        where: { journalEntryId_provider: { journalEntryId, provider: selectedProvider } },
+        create: { journalEntryId, provider: selectedProvider, ...minimalData },
+        update: minimalData,
       });
       return;
     }

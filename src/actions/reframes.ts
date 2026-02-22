@@ -131,6 +131,9 @@ export async function applyReframe(_interpretationId: string, _action: string) {
  * @returns List of reframes
  */
 export async function getReframeHistory(resolutionId: string, limit = 20) {
+  const MAX_LIMIT = 100;
+  const safeLimit = Number.isInteger(limit) && limit > 0 ? Math.min(limit, MAX_LIMIT) : 20;
+
   try {
     const interpretations = await prisma.aIInterpretation.findMany({
       where: {
@@ -154,7 +157,7 @@ export async function getReframeHistory(resolutionId: string, limit = 20) {
       orderBy: {
         createdAt: 'desc',
       },
-      take: limit,
+      take: safeLimit,
     });
 
     const history = interpretations.map((interpretation) => ({

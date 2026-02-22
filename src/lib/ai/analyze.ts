@@ -9,7 +9,7 @@ import {
   type ResolutionContext,
   type AIAnalysisResponse,
 } from './prompts';
-import type { ActivityLevel, MomentumSignal, ReframeType } from '@prisma/client';
+import type { MomentumSignal, ReframeType } from '@prisma/client';
 
 /**
  * Build a Zod schema for AI analysis response dynamically based on resolution IDs.
@@ -168,25 +168,22 @@ export async function analyzeJournalEntry(
       throw new Error('AI analysis failed to produce results');
     }
 
-    // Remove any existing interpretation for this entry+provider before creating
-    // so re-analysis replaces rather than duplicates the previous result
-    await prisma.aIInterpretation.deleteMany({
-      where: { journalEntryId, provider: selectedProvider },
-    });
-
-    // Store AI interpretation in database
-    await prisma.aIInterpretation.create({
-      data: {
-        journalEntryId,
-        provider: selectedProvider,
-        detectedActivity: analysisResult.detectedActivity,
-        momentumSignal: analysisResult.momentumSignal as MomentumSignal,
-        riskFlags: analysisResult.riskFlags,
-        suggestedAdjustments: analysisResult.suggestedAdjustments,
-        reframeType: analysisResult.reframeType as ReframeType | null,
-        reframeReason: analysisResult.reframeReason,
-        reframeSuggestion: analysisResult.reframeSuggestion,
-      },
+    // Atomically insert or replace the interpretation for this entry+provider.
+    // The @@unique([journalEntryId, provider]) constraint means we can use a single
+    // upsert instead of a non-atomic deleteMany + create pair.
+    const interpretationData = {
+      detectedActivity: analysisResult.detectedActivity,
+      momentumSignal: analysisResult.momentumSignal as MomentumSignal,
+      riskFlags: analysisResult.riskFlags,
+      suggestedAdjustments: analysisResult.suggestedAdjustments,
+      reframeType: analysisResult.reframeType as ReframeType | null,
+      reframeReason: analysisResult.reframeReason,
+      reframeSuggestion: analysisResult.reframeSuggestion,
+    };
+    await prisma.aIInterpretation.upsert({
+      where: { journalEntryId_provider: { journalEntryId, provider: selectedProvider } },
+      create: { journalEntryId, provider: selectedProvider, ...interpretationData },
+      update: interpretationData,
     });
 
     // Update daily activity records based on detected engagement
@@ -219,9 +216,11 @@ async function updateDailyActivities(
   const normalizedDate = new Date(entryDate);
   normalizedDate.setUTCHours(0, 0, 0, 0);
 
-  const levelPriority: Record<string, number> = { NONE: 0, PARTIAL: 1, FULL: 2 };
-
-  // Update or create daily activity records for each resolution
+  // Update or create daily activity records for each resolution.
+  // Uses a single atomic INSERT … ON CONFLICT DO UPDATE WHERE to avoid the
+  // TOCTOU race that a findUnique → create/update sequence has under concurrent
+  // batchAnalyzeEntries calls.  The WHERE on the DO UPDATE clause ensures we
+  // only upgrade (NONE → PARTIAL → FULL) and never downgrade.
   for (const [resolutionId, activityLevel] of Object.entries(detectedActivity)) {
     if (activityLevel === 'NONE') {
       // Skip creating records for no activity
@@ -229,22 +228,13 @@ async function updateDailyActivities(
     }
 
     try {
-      const existing = await prisma.dailyActivity.findUnique({
-        where: { date_resolutionId: { date: normalizedDate, resolutionId } },
-        select: { activityLevel: true },
-      });
-
-      if (!existing) {
-        await prisma.dailyActivity.create({
-          data: { date: normalizedDate, resolutionId, activityLevel: activityLevel as ActivityLevel },
-        });
-      } else if (levelPriority[activityLevel] > levelPriority[existing.activityLevel]) {
-        // Only upgrade — never let a later PARTIAL overwrite an earlier FULL
-        await prisma.dailyActivity.update({
-          where: { date_resolutionId: { date: normalizedDate, resolutionId } },
-          data: { activityLevel: activityLevel as ActivityLevel },
-        });
-      }
+      await prisma.$executeRaw`
+        INSERT INTO daily_activity (id, date, resolution_id, activity_level)
+        VALUES (gen_random_uuid(), ${normalizedDate}::date, ${resolutionId}, ${activityLevel}::"ActivityLevel")
+        ON CONFLICT (date, resolution_id) DO UPDATE
+          SET activity_level = EXCLUDED.activity_level
+          WHERE daily_activity.activity_level < EXCLUDED.activity_level
+      `;
     } catch (error) {
       console.error(
         `Error updating daily activity for resolution ${resolutionId}:`,

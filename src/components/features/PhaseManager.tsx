@@ -73,6 +73,8 @@ export function PhaseManager({
   };
 
   const handleActivatePhase = async (phaseId: string) => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
       const result = await activatePhase(resolutionId, phaseId);
       if (result.success) {
@@ -83,10 +85,14 @@ export function PhaseManager({
     } catch (error) {
       console.error('Error activating phase:', error);
       alert('Failed to activate phase');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleDeactivatePhase = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
       const result = await deactivatePhase(resolutionId);
       if (result.success) {
@@ -97,6 +103,8 @@ export function PhaseManager({
     } catch (error) {
       console.error('Error deactivating phase:', error);
       alert('Failed to deactivate phase');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -140,7 +148,7 @@ export function PhaseManager({
                   )}
                 </div>
               </div>
-              <Button size="sm" variant="ghost" onClick={handleDeactivatePhase}>
+              <Button size="sm" variant="ghost" onClick={handleDeactivatePhase} disabled={isSubmitting}>
                 Deactivate
               </Button>
             </div>
@@ -257,6 +265,7 @@ export function PhaseManager({
                           size="sm"
                           variant="secondary"
                           onClick={() => handleActivatePhase(phase.id)}
+                          disabled={isSubmitting}
                         >
                           Activate
                         </Button>

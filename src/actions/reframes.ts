@@ -47,7 +47,14 @@ export async function getActiveReframes(resolutionId?: string) {
     };
 
     const reframesByResolution = interpretations.reduce<Record<string, ReframeEntry[]>>((acc, interpretation) => {
-      interpretation.journalEntry.linkedResolutionIds.forEach((resId) => {
+      // When a resolutionId filter is present, only index under that key —
+      // not every ID in the entry — so interpretations shared across resolutions
+      // don't bleed into unrelated buckets.
+      const idsToProcess = resolutionId
+        ? [resolutionId]
+        : interpretation.journalEntry.linkedResolutionIds;
+
+      idsToProcess.forEach((resId) => {
         if (!acc[resId]) {
           acc[resId] = [];
         }

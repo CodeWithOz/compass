@@ -2,6 +2,7 @@
 
 import { z } from 'zod';
 import { prisma } from '@/lib/db/client';
+import { UserError } from '@/lib/errors';
 
 /**
  * Validation schemas for phase operations
@@ -33,7 +34,7 @@ export async function createPhase(data: z.infer<typeof CreatePhaseSchema>) {
 
     // Validate date range
     if (validated.endDate && validated.endDate < validated.startDate) {
-      throw new Error('End date must be after start date');
+      throw new UserError('End date must be after start date');
     }
 
     // Create phase
@@ -54,7 +55,7 @@ export async function createPhase(data: z.infer<typeof CreatePhaseSchema>) {
     console.error('Error creating phase:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to create phase',
+      error: error instanceof UserError ? error.message : 'Failed to create phase',
     };
   }
 }
@@ -77,7 +78,7 @@ export async function updatePhase(data: z.infer<typeof UpdatePhaseSchema>) {
     });
 
     if (!existing) {
-      throw new Error('Phase not found');
+      throw new UserError('Phase not found');
     }
 
     // Validate date range if dates are being updated
@@ -85,7 +86,7 @@ export async function updatePhase(data: z.infer<typeof UpdatePhaseSchema>) {
     const finalEndDate = updateData.endDate !== undefined ? updateData.endDate : existing.endDate;
 
     if (finalEndDate && finalEndDate < finalStartDate) {
-      throw new Error('End date must be after start date');
+      throw new UserError('End date must be after start date');
     }
 
     // Update phase
@@ -99,7 +100,7 @@ export async function updatePhase(data: z.infer<typeof UpdatePhaseSchema>) {
     console.error('Error updating phase:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to update phase',
+      error: error instanceof UserError ? error.message : 'Failed to update phase',
     };
   }
 }
@@ -121,11 +122,11 @@ export async function activatePhase(resolutionId: string, phaseId: string) {
     });
 
     if (!phase) {
-      throw new Error('Phase not found');
+      throw new UserError('Phase not found');
     }
 
     if (phase.resolutionId !== resolutionId) {
-      throw new Error('Phase does not belong to this resolution');
+      throw new UserError('Phase does not belong to this resolution');
     }
 
     // Activate phase
@@ -142,7 +143,7 @@ export async function activatePhase(resolutionId: string, phaseId: string) {
     console.error('Error activating phase:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to activate phase',
+      error: error instanceof UserError ? error.message : 'Failed to activate phase',
     };
   }
 }
@@ -170,7 +171,7 @@ export async function deactivatePhase(resolutionId: string) {
     console.error('Error deactivating phase:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to deactivate phase',
+      error: 'Failed to deactivate phase',
     };
   }
 }
@@ -201,7 +202,7 @@ export async function getActivePhases() {
     console.error('Error fetching active phases:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch active phases',
+      error: 'Failed to fetch active phases',
     };
   }
 }
@@ -226,7 +227,7 @@ export async function getPhases(resolutionId: string) {
     console.error('Error fetching phases:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch phases',
+      error: 'Failed to fetch phases',
     };
   }
 }
@@ -250,7 +251,7 @@ export async function deletePhase(id: string) {
     });
 
     if (!phase) {
-      throw new Error('Phase not found');
+      throw new UserError('Phase not found');
     }
 
     // Atomically deactivate resolutions and delete the phase
@@ -271,7 +272,7 @@ export async function deletePhase(id: string) {
     console.error('Error deleting phase:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to delete phase',
+      error: error instanceof UserError ? error.message : 'Failed to delete phase',
     };
   }
 }

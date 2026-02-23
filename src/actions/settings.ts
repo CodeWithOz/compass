@@ -48,7 +48,7 @@ export async function getSettings() {
     console.error('Error fetching settings:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch settings',
+      error: 'Failed to fetch settings',
     };
   }
 }
@@ -82,7 +82,7 @@ export async function updateSettings(data: z.infer<typeof UpdateSettingsSchema>)
     console.error('Error updating settings:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to update settings',
+      error: 'Failed to update settings',
     };
   }
 }

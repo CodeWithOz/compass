@@ -3,6 +3,7 @@
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db/client';
+import { UserError } from '@/lib/errors';
 import { enqueueAnalysis } from '@/lib/queue/analysis-queue';
 import type { AIProvider } from '@/lib/ai/providers';
 
@@ -97,7 +98,7 @@ export async function createJournalEntry(
     console.error('Error creating journal entry:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to create journal entry',
+      error: 'Failed to create journal entry',
     };
   }
 }
@@ -150,7 +151,7 @@ export async function getJournalEntries(options?: {
     console.error('Error fetching journal entries:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch journal entries',
+      error: 'Failed to fetch journal entries',
     };
   }
 }
@@ -175,7 +176,7 @@ export async function getJournalEntry(id: string) {
     });
 
     if (!entry) {
-      throw new Error('Journal entry not found');
+      throw new UserError('Journal entry not found');
     }
 
     return { success: true, data: entry };
@@ -183,7 +184,7 @@ export async function getJournalEntry(id: string) {
     console.error('Error fetching journal entry:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch journal entry',
+      error: error instanceof UserError ? error.message : 'Failed to fetch journal entry',
     };
   }
 }
@@ -202,7 +203,7 @@ export async function getAdjacentEntryIds(currentId: string) {
     });
 
     if (!currentEntry) {
-      throw new Error('Journal entry not found');
+      throw new UserError('Journal entry not found');
     }
 
     // Get previous entry (older, earlier timestamp)
@@ -242,7 +243,7 @@ export async function getAdjacentEntryIds(currentId: string) {
     console.error('Error fetching adjacent entry IDs:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch adjacent entries',
+      error: error instanceof UserError ? error.message : 'Failed to fetch adjacent entries',
     };
   }
 }
@@ -264,7 +265,7 @@ export async function triggerReanalysis(entryId: string, provider: AIProvider) {
     });
 
     if (!entry) {
-      throw new Error('Journal entry not found');
+      throw new UserError('Journal entry not found');
     }
 
     // Enqueue analysis with specified provider
@@ -275,7 +276,7 @@ export async function triggerReanalysis(entryId: string, provider: AIProvider) {
     console.error('Error triggering reanalysis:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to trigger reanalysis',
+      error: error instanceof UserError ? error.message : 'Failed to trigger reanalysis',
     };
   }
 }
@@ -325,7 +326,7 @@ export async function getLinkedJournalEntries(resolutionId: string, limit = 5) {
     console.error('Error fetching linked journal entries:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch linked entries',
+      error: 'Failed to fetch linked entries',
     };
   }
 }
@@ -357,7 +358,7 @@ export async function getEntriesPendingAnalysis(limit = 20) {
     console.error('Error fetching pending entries:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch pending entries',
+      error: 'Failed to fetch pending entries',
     };
   }
 }

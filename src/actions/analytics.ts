@@ -37,7 +37,7 @@ export async function getWeeklySummary(weekStart: Date, resolutionId?: string) {
     console.error('Error fetching weekly summary:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch weekly summary',
+      error: 'Failed to fetch weekly summary',
     };
   }
 }
@@ -88,7 +88,7 @@ export async function getDailyActivity(
     console.error('Error fetching daily activity:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch daily activity',
+      error: 'Failed to fetch daily activity',
     };
   }
 }
@@ -120,7 +120,7 @@ export async function getEntryCountsPerDay(startDate: Date, endDate: Date) {
     };
   } catch (error) {
     console.error('Error fetching entry counts per day:', error);
-    return { success: false, error: String(error) };
+    return { success: false, error: 'Failed to fetch entry counts' };
   }
 }
 
@@ -166,7 +166,7 @@ export async function getResolutionEntryCountsPerDay(
     };
   } catch (error) {
     console.error('Error fetching resolution entry counts:', error);
-    return { success: false, error: String(error) };
+    return { success: false, error: 'Failed to fetch resolution entry counts' };
   }
 }
 
@@ -232,7 +232,7 @@ export async function getHeatmapData(startDate: Date, endDate: Date) {
     console.error('Error fetching heatmap data:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch heatmap data',
+      error: 'Failed to fetch heatmap data',
     };
   }
 }
@@ -313,7 +313,7 @@ export async function getEngagementStats(
     console.error('Error fetching engagement stats:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch engagement stats',
+      error: 'Failed to fetch engagement stats',
     };
   }
 }
@@ -438,7 +438,7 @@ export async function getRecentSignals(limit = 5) {
     console.error('Error fetching recent signals:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch recent signals',
+      error: 'Failed to fetch recent signals',
     };
   }
 }
@@ -473,7 +473,7 @@ export async function getMomentumTrends() {
     console.error('Error fetching momentum trends:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch momentum trends',
+      error: 'Failed to fetch momentum trends',
     };
   }
 }
@@ -638,7 +638,7 @@ export async function getWeeklyReviewData(weekStart: Date) {
     console.error('Error fetching weekly review data:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch weekly review data',
+      error: 'Failed to fetch weekly review data',
     };
   }
 }

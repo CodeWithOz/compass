@@ -75,7 +75,7 @@ export async function getActiveReframes(resolutionId?: string) {
     console.error('Error fetching active reframes:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch active reframes',
+      error: 'Failed to fetch active reframes',
     };
   }
 }
@@ -174,7 +174,7 @@ export async function getReframeHistory(resolutionId: string, limit = 20) {
     console.error('Error fetching reframe history:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch reframe history',
+      error: 'Failed to fetch reframe history',
     };
   }
 }

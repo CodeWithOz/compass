@@ -3,6 +3,7 @@
 import { z } from 'zod';
 import { prisma } from '@/lib/db/client';
 import type { ResolutionType, ResolutionStatus } from '@prisma/client';
+import { UserError } from '@/lib/errors';
 
 /**
  * Validation schemas for resolution operations
@@ -41,7 +42,7 @@ export async function createResolution(data: z.infer<typeof CreateResolutionSche
 
     // Type-specific validation
     if (validated.type === 'MEASURABLE_OUTCOME' && !validated.targetDate) {
-      throw new Error('Target date is required for MEASURABLE_OUTCOME resolutions');
+      throw new UserError('Target date is required for MEASURABLE_OUTCOME resolutions');
     }
 
     // Create resolution
@@ -65,7 +66,7 @@ export async function createResolution(data: z.infer<typeof CreateResolutionSche
     console.error('Error creating resolution:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to create resolution',
+      error: error instanceof UserError ? error.message : 'Failed to create resolution',
     };
   }
 }
@@ -88,7 +89,7 @@ export async function updateResolution(data: z.infer<typeof UpdateResolutionSche
     });
 
     if (!existing) {
-      throw new Error('Resolution not found');
+      throw new UserError('Resolution not found');
     }
 
     // Type-specific validation
@@ -96,14 +97,24 @@ export async function updateResolution(data: z.infer<typeof UpdateResolutionSche
     if (finalType === 'MEASURABLE_OUTCOME') {
       const finalTargetDate = updateData.targetDate || existing.targetDate;
       if (!finalTargetDate) {
-        throw new Error('Target date is required for MEASURABLE_OUTCOME resolutions');
+        throw new UserError('Target date is required for MEASURABLE_OUTCOME resolutions');
       }
+    }
+
+    // When the resolution type changes, explicitly null out fields that belong
+    // exclusively to the previous type.  Omitting them (undefined) would cause
+    // Prisma to skip the column, leaving stale values in the DB even after the
+    // client-side form has already cleared the input.
+    const typeTransitionNulls: { targetDate?: null; exitCriteria?: null } = {};
+    if (updateData.type && existing.type !== finalType) {
+      if (finalType !== 'MEASURABLE_OUTCOME') typeTransitionNulls.targetDate = null;
+      if (finalType !== 'EXPLORATORY_TRACK') typeTransitionNulls.exitCriteria = null;
     }
 
     // Update resolution
     const resolution = await prisma.resolution.update({
       where: { id },
-      data: updateData,
+      data: { ...updateData, ...typeTransitionNulls },
     });
 
     return { success: true, data: resolution };
@@ -111,7 +122,7 @@ export async function updateResolution(data: z.infer<typeof UpdateResolutionSche
     console.error('Error updating resolution:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to update resolution',
+      error: error instanceof UserError ? error.message : 'Failed to update resolution',
     };
   }
 }
@@ -136,7 +147,7 @@ export async function archiveResolution(id: string) {
     console.error('Error archiving resolution:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to archive resolution',
+      error: 'Failed to archive resolution',
     };
   }
 }
@@ -161,7 +172,7 @@ export async function pauseResolution(id: string) {
     console.error('Error pausing resolution:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to pause resolution',
+      error: 'Failed to pause resolution',
     };
   }
 }
@@ -184,7 +195,7 @@ export async function reactivateResolution(id: string) {
     console.error('Error reactivating resolution:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to reactivate resolution',
+      error: 'Failed to reactivate resolution',
     };
   }
 }
@@ -212,7 +223,7 @@ export async function getResolutions(status?: ResolutionStatus) {
     console.error('Error fetching resolutions:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch resolutions',
+      error: 'Failed to fetch resolutions',
     };
   }
 }
@@ -238,7 +249,7 @@ export async function getResolution(id: string) {
     });
 
     if (!resolution) {
-      throw new Error('Resolution not found');
+      throw new UserError('Resolution not found');
     }
 
     return { success: true, data: resolution };
@@ -246,7 +257,7 @@ export async function getResolution(id: string) {
     console.error('Error fetching resolution:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch resolution',
+      error: error instanceof UserError ? error.message : 'Failed to fetch resolution',
     };
   }
 }

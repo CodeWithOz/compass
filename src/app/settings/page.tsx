@@ -12,7 +12,8 @@ import { getSettings } from '@/actions/settings';
 import { FolderOpen, AlertTriangle } from 'lucide-react';
 
 export default async function SettingsPage() {
-  const { data: settings } = await getSettings();
+  const result = await getSettings();
+  const settings = result.success ? result.data : null;
 
   return (
     <>

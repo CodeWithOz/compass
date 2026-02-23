@@ -40,9 +40,9 @@ export async function getSettings(): Promise<SettingsResult> {
  * Falls back to environment variables if not set in user settings
  */
 export async function getProviderApiKey(provider: AIProviderType): Promise<string | null> {
-  const { data: settings } = await getSettings();
+  const result = await getSettings();
 
-  if (!settings) {
+  if (!result.success) {
     // Fall back to environment variables
     switch (provider) {
       case 'CLAUDE':
@@ -53,6 +53,8 @@ export async function getProviderApiKey(provider: AIProviderType): Promise<strin
         return process.env.GOOGLE_API_KEY || null;
     }
   }
+
+  const settings = result.data;
 
   // Check settings first, then fall back to env vars
   switch (provider) {
@@ -69,7 +71,8 @@ export async function getProviderApiKey(provider: AIProviderType): Promise<strin
  * Get the current AI provider from settings or env vars
  */
 export async function getCurrentProvider(): Promise<AIProviderType> {
-  const { data: settings } = await getSettings();
+  const result = await getSettings();
+  const settings = result.success ? result.data : null;
 
   if (settings?.aiProvider) {
     return settings.aiProvider;

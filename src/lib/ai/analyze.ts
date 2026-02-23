@@ -270,6 +270,10 @@ export async function batchAnalyzeEntries(
   provider?: AIProvider,
   concurrency = 3
 ): Promise<void> {
+  // Guard against zero/negative concurrency which would make i += concurrency
+  // never advance, creating an infinite loop.
+  concurrency = Math.max(1, Math.floor(concurrency));
+
   console.log(`Batch analyzing ${journalEntryIds.length} entries with concurrency ${concurrency}...`);
 
   const failed: string[] = [];

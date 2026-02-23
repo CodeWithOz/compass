@@ -2,7 +2,7 @@ import { generateText, Output } from 'ai';
 import { z } from 'zod';
 import { prisma } from '@/lib/db/client';
 import { getAIModel, validateProviderConfig, providerTypeToProvider, type AIProvider } from './providers';
-import { getCurrentProvider, getProviderApiKey } from '@/actions/settings';
+import { getCurrentProvider, getProviderApiKey } from '@/lib/settings';
 import {
   getJournalAnalysisSystemPrompt,
   getJournalAnalysisUserPrompt,

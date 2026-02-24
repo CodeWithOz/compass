@@ -5,28 +5,35 @@
 
 ## Context
 
-This project stores local environment variables in `.env.local` (Next.js convention) rather than the `.env` file that Prisma's CLI auto-loads. On production, environment variables are injected directly by the host runtime — no `.env` file is read at all.
+This project stores local environment variables in `.env.local` (Next.js convention). On production, environment variables are injected directly by the host runtime — no `.env` file is read.
 
-An earlier approach used the `dotenv` npm package inside Prisma configuration files to load `.env.local` programmatically. This created two problems:
+Prisma 7 uses `prisma.config.ts` to configure the datasource URL, reading `process.env.DATABASE_URL` directly. Because `.env.local` is not automatically loaded into the process environment, the CLI cannot find `DATABASE_URL` unless something injects it first.
+
+An earlier approach used the `dotenv` npm package inside `prisma.config.ts` to load `.env.local` programmatically. This created two problems:
 
 1. **Unnecessary prod dependency** — the `dotenv` package ran on every production start even though production never needs it.
 2. **Coupling** — env loading logic was embedded inside Prisma config code rather than at the invocation boundary.
 
 ## Decision
 
-Use [dotenv-cli](https://github.com/entropitor/dotenv-cli) (a `devDependency`) to prefix every Prisma CLI invocation with:
+Use [dotenv-cli](https://github.com/entropitor/dotenv-cli) (a `devDependency`) to inject `.env.local` into the environment before every Prisma CLI invocation. The form differs depending on the context:
 
-```
-dotenv -e .env.local -- npx prisma <command>
-```
+- **Inside npm scripts** — npm adds `node_modules/.bin` to PATH, so the short form works:
+  ```
+  dotenv -e .env.local -- npx prisma <command>
+  ```
+- **Inside shell scripts / CI** — PATH cannot be assumed; use the explicit local binary:
+  ```
+  ./node_modules/.bin/dotenv -e .env.local -- ./node_modules/.bin/prisma <command>
+  ```
 
-This injects `.env.local` into the process environment before Prisma starts, so Prisma sees `DATABASE_URL` without needing any runtime dotenv import inside its own config files.
+This injects `.env.local` at the invocation boundary so Prisma sees `DATABASE_URL` without any runtime dotenv import in `prisma.config.ts`.
 
 ## Consequences
 
 ### For npm scripts (`package.json`)
 
-All `db:*` and `generate` scripts already include the prefix:
+All `db:*` and `generate` scripts include the prefix. npm automatically adds `node_modules/.bin` to PATH when running scripts, so `dotenv` and `npx prisma` both resolve locally:
 
 ```jsonc
 "db:migrate": "dotenv -e .env.local -- npx prisma migrate dev",
@@ -40,17 +47,16 @@ All `db:*` and `generate` scripts already include the prefix:
 
 ### For shell scripts (`scripts/setup.sh`)
 
-The setup script installs dependencies before running Prisma, so by the time Prisma is invoked `node_modules/.bin/dotenv` is present. The `run_prisma()` function uses the local binary explicitly:
+The setup script installs dependencies before running Prisma, so both local binaries are present by the time `run_prisma()` executes. Both are pinned by full path to eliminate PATH ambiguity:
 
 ```bash
 local DOTENV_BIN="$PROJECT_DIR/node_modules/.bin/dotenv"
+local PRISMA_BIN="$PROJECT_DIR/node_modules/.bin/prisma"
 local ENV_FILE="$PROJECT_DIR/.env.local"
 
-"$DOTENV_BIN" -e "$ENV_FILE" -- npx prisma migrate deploy
-"$DOTENV_BIN" -e "$ENV_FILE" -- npx prisma generate
+"$DOTENV_BIN" -e "$ENV_FILE" -- "$PRISMA_BIN" migrate deploy
+"$DOTENV_BIN" -e "$ENV_FILE" -- "$PRISMA_BIN" generate
 ```
-
-Using the full path prevents any PATH ambiguity inside the setup script.
 
 ### For production
 
@@ -58,4 +64,4 @@ No change — `dotenv-cli` is a `devDependency` and is never installed in produc
 
 ### Rule for future contributors
 
-> If you add a new `prisma` CLI invocation — in a script, Makefile, CI step, or shell session — prefix it with `dotenv -e .env.local --`.
+> If you add a new `prisma` CLI invocation — in a script, Makefile, CI step, or shell session — prefix it with `dotenv -e .env.local --` (npm scripts) or the explicit local binary form (shell scripts / CI).

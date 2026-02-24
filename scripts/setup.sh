@@ -200,8 +200,19 @@ install_deps() {
 # Prisma
 # ---------------------------------------------------------------------------
 run_prisma() {
+  # All Prisma CLI commands must be prefixed with dotenv-cli so that
+  # DATABASE_URL is sourced from .env.local (Prisma only auto-loads .env).
+  # dotenv-cli is a devDependency installed by install_deps(); use the local
+  # binary directly to avoid ambiguity with any globally installed version.
+  local DOTENV_BIN="$PROJECT_DIR/node_modules/.bin/dotenv"
+  local ENV_FILE="$PROJECT_DIR/.env.local"
+
+  if [ ! -x "$DOTENV_BIN" ]; then
+    fail "dotenv-cli not found at $DOTENV_BIN. Run 'npm ci' first."
+  fi
+
   info "Running Prisma migrations…"
-  if deploy_output=$(npx prisma migrate deploy 2>&1); then
+  if deploy_output=$("$DOTENV_BIN" -e "$ENV_FILE" -- npx prisma migrate deploy 2>&1); then
     ok "Migrations applied"
   else
     # migrate deploy failed — check if it's the expected "no migrations yet" case
@@ -213,12 +224,12 @@ run_prisma() {
       printf "%s\n" "$deploy_output" >&2
       info "migrate deploy failed — trying migrate dev --name init as fallback…"
     fi
-    npx prisma migrate dev --name init
+    "$DOTENV_BIN" -e "$ENV_FILE" -- npx prisma migrate dev --name init
     ok "Migrations applied"
   fi
 
   info "Generating Prisma client…"
-  npx prisma generate
+  "$DOTENV_BIN" -e "$ENV_FILE" -- npx prisma generate
   ok "Prisma client generated"
 }
 

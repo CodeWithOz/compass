@@ -96,6 +96,7 @@ scripts/
 - **Server actions:** Prefer server actions in `src/actions/` for mutations over API routes.
 - **Path aliases:** `@/*` maps to `./src/*`.
 - **Environment:** `.env.local` is the active env file (`.env.example` is the template).
+- **Prisma CLI commands:** Always prefix `npx prisma` with `dotenv -e .env.local --` so the CLI picks up `DATABASE_URL` from `.env.local`. Prisma only auto-loads `.env`, not `.env.local`. Use the npm scripts (`db:migrate`, `db:deploy`, `db:studio`, `db:reset`, `generate`) which already include this prefix — do not call `npx prisma` bare. In shell scripts, use the local binary: `./node_modules/.bin/dotenv -e .env.local -- npx prisma …`. See [docs/adr/0001-dotenv-cli-for-prisma.md](docs/adr/0001-dotenv-cli-for-prisma.md) for rationale.
 
 ---
 

@@ -215,16 +215,24 @@ run_prisma() {
     fail "prisma not found at $PRISMA_BIN. Run 'npm ci' first."
   fi
 
+  # Decide which migrate command to run based on filesystem state.
+  # Each Prisma migration is a timestamped subdirectory under the migrations path.
+  # Checking the directory avoids relying on error-text parsing, which is fragile.
+  local MIGRATIONS_DIR="$PROJECT_DIR/prisma/migrations"
+  local has_migrations=false
+  if [ -d "$MIGRATIONS_DIR" ]; then
+    for _d in "$MIGRATIONS_DIR"/*/; do
+      [ -d "$_d" ] && has_migrations=true && break
+    done
+  fi
+
   info "Running Prisma migrations…"
-  if deploy_output=$("$DOTENV_BIN" -e "$ENV_FILE" -- "$PRISMA_BIN" migrate deploy 2>&1); then
+  if [ "$has_migrations" = false ]; then
+    info "No migration files found — creating initial migration…"
+    "$DOTENV_BIN" -e "$ENV_FILE" -- "$PRISMA_BIN" migrate dev --name init
     ok "Migrations applied"
   else
-    # migrate deploy failed — only fall back to migrate dev for the expected
-    # "no migration files yet" case on a fresh project. Any other failure
-    # (DB unreachable, schema drift, etc.) is a real error: print it and abort.
-    if echo "$deploy_output" | grep -qi "no pending migrations\|no migration\|no schema changes"; then
-      info "No existing migrations found — creating initial migration…"
-      "$DOTENV_BIN" -e "$ENV_FILE" -- "$PRISMA_BIN" migrate dev --name init
+    if deploy_output=$("$DOTENV_BIN" -e "$ENV_FILE" -- "$PRISMA_BIN" migrate deploy 2>&1); then
       ok "Migrations applied"
     else
       printf "%s\n" "$deploy_output" >&2

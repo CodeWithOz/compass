@@ -3,14 +3,20 @@
 # Compass — Worktree Setup
 # =============================================================================
 # Bootstraps a local dev environment for this worktree.
-# Safe to run repeatedly (idempotent).
+# Safe to run repeatedly (idempotent) once migrations exist.
+#
+# Prerequisites:
+#   Migration files must already exist in prisma/migrations/ before first run.
+#   Create them interactively in your primary worktree with: npm run db:migrate
+#   This script intentionally uses `prisma migrate deploy` (non-interactive) so
+#   it works in automated flows, Docker, and remote SSH sessions without a TTY.
 #
 # What it does:
 #   1. Verifies prerequisites (node, npm, docker)
 #   2. Starts a Docker Postgres container unique to this worktree
 #   3. Creates .env.local with the correct DATABASE_URL
 #   4. Installs npm dependencies
-#   5. Runs Prisma migrations + generates the client
+#   5. Applies Prisma migrations + generates the client
 #
 # Usage:
 #   ./scripts/setup.sh            # full setup
@@ -227,15 +233,19 @@ run_prisma() {
   fi
 
   info "Running Prisma migrations…"
-  if [ "$has_migrations" = false ]; then
-    info "No migration files found — creating initial migration…"
-    "$DOTENV_BIN" -e "$ENV_FILE" -- "$PRISMA_BIN" migrate dev --name init
+  # Always use migrate deploy — it is non-interactive and safe for scripts,
+  # Docker containers, and remote SSH sessions. migrate dev requires a TTY
+  # and will hard-fail in any piped or non-interactive context regardless of
+  # the --name flag (Prisma issues #4669, #7113).
+  if deploy_output=$("$DOTENV_BIN" -e "$ENV_FILE" -- "$PRISMA_BIN" migrate deploy 2>&1); then
     ok "Migrations applied"
   else
-    if deploy_output=$("$DOTENV_BIN" -e "$ENV_FILE" -- "$PRISMA_BIN" migrate deploy 2>&1); then
-      ok "Migrations applied"
+    printf "%s\n" "$deploy_output" >&2
+    if [ "$has_migrations" = false ]; then
+      fail "No migration files found in $MIGRATIONS_DIR.
+       Create the first migration in an interactive terminal, then re-run setup:
+         npm run db:migrate"
     else
-      printf "%s\n" "$deploy_output" >&2
       fail "prisma migrate deploy failed — fix the error above and re-run setup."
     fi
   fi

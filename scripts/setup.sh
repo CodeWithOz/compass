@@ -3,14 +3,20 @@
 # Compass — Worktree Setup
 # =============================================================================
 # Bootstraps a local dev environment for this worktree.
-# Safe to run repeatedly (idempotent).
+# Safe to run repeatedly (idempotent) once migrations exist.
+#
+# Prerequisites:
+#   Migration files must already exist in prisma/migrations/ before first run.
+#   Create them interactively in your primary worktree with: npm run db:migrate
+#   This script intentionally uses `prisma migrate deploy` (non-interactive) so
+#   it works in automated flows, Docker, and remote SSH sessions without a TTY.
 #
 # What it does:
 #   1. Verifies prerequisites (node, npm, docker)
 #   2. Starts a Docker Postgres container unique to this worktree
 #   3. Creates .env.local with the correct DATABASE_URL
 #   4. Installs npm dependencies
-#   5. Runs Prisma migrations + generates the client
+#   5. Applies Prisma migrations + generates the client
 #
 # Usage:
 #   ./scripts/setup.sh            # full setup
@@ -200,25 +206,52 @@ install_deps() {
 # Prisma
 # ---------------------------------------------------------------------------
 run_prisma() {
+  # Prisma 7 reads DATABASE_URL from process.env (via prisma.config.ts).
+  # .env.local is not auto-loaded, so use dotenv-cli to inject it before
+  # every Prisma CLI invocation. Both binaries are pinned to the local
+  # node_modules to eliminate any PATH / version ambiguity.
+  local DOTENV_BIN="$PROJECT_DIR/node_modules/.bin/dotenv"
+  local PRISMA_BIN="$PROJECT_DIR/node_modules/.bin/prisma"
+  local ENV_FILE="$PROJECT_DIR/.env.local"
+
+  if [ ! -x "$DOTENV_BIN" ]; then
+    fail "dotenv-cli not found at $DOTENV_BIN. Run 'npm ci' first."
+  fi
+  if [ ! -x "$PRISMA_BIN" ]; then
+    fail "prisma not found at $PRISMA_BIN. Run 'npm ci' first."
+  fi
+
+  # Decide which migrate command to run based on filesystem state.
+  # Each Prisma migration is a timestamped subdirectory under the migrations path.
+  # Checking the directory avoids relying on error-text parsing, which is fragile.
+  local MIGRATIONS_DIR="$PROJECT_DIR/prisma/migrations"
+  local has_migrations=false
+  if [ -d "$MIGRATIONS_DIR" ]; then
+    for _d in "$MIGRATIONS_DIR"/*/; do
+      [ -d "$_d" ] && has_migrations=true && break
+    done
+  fi
+
   info "Running Prisma migrations…"
-  if deploy_output=$(npx prisma migrate deploy 2>&1); then
+  # Always use migrate deploy — it is non-interactive and safe for scripts,
+  # Docker containers, and remote SSH sessions. migrate dev requires a TTY
+  # and will hard-fail in any piped or non-interactive context regardless of
+  # the --name flag (Prisma issues #4669, #7113).
+  if deploy_output=$("$DOTENV_BIN" -e "$ENV_FILE" -- "$PRISMA_BIN" migrate deploy 2>&1); then
     ok "Migrations applied"
   else
-    # migrate deploy failed — check if it's the expected "no migrations yet" case
-    # (e.g. fresh project with no migration files) and fall back to migrate dev.
-    # Any other error (DB connection, schema drift) is printed so the cause is visible.
-    if echo "$deploy_output" | grep -qi "no pending migrations\|no migration\|no schema changes"; then
-      info "No existing migrations found — creating initial migration…"
+    printf "%s\n" "$deploy_output" >&2
+    if [ "$has_migrations" = false ]; then
+      fail "No migration files found in $MIGRATIONS_DIR.
+       Create the first migration in an interactive terminal, then re-run setup:
+         npm run db:migrate"
     else
-      printf "%s\n" "$deploy_output" >&2
-      info "migrate deploy failed — trying migrate dev --name init as fallback…"
+      fail "prisma migrate deploy failed — fix the error above and re-run setup."
     fi
-    npx prisma migrate dev --name init
-    ok "Migrations applied"
   fi
 
   info "Generating Prisma client…"
-  npx prisma generate
+  "$DOTENV_BIN" -e "$ENV_FILE" -- "$PRISMA_BIN" generate
   ok "Prisma client generated"
 }
 

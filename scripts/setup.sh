@@ -219,17 +219,17 @@ run_prisma() {
   if deploy_output=$("$DOTENV_BIN" -e "$ENV_FILE" -- "$PRISMA_BIN" migrate deploy 2>&1); then
     ok "Migrations applied"
   else
-    # migrate deploy failed — check if it's the expected "no migrations yet" case
-    # (e.g. fresh project with no migration files) and fall back to migrate dev.
-    # Any other error (DB connection, schema drift) is printed so the cause is visible.
+    # migrate deploy failed — only fall back to migrate dev for the expected
+    # "no migration files yet" case on a fresh project. Any other failure
+    # (DB unreachable, schema drift, etc.) is a real error: print it and abort.
     if echo "$deploy_output" | grep -qi "no pending migrations\|no migration\|no schema changes"; then
       info "No existing migrations found — creating initial migration…"
+      "$DOTENV_BIN" -e "$ENV_FILE" -- "$PRISMA_BIN" migrate dev --name init
+      ok "Migrations applied"
     else
       printf "%s\n" "$deploy_output" >&2
-      info "migrate deploy failed — trying migrate dev --name init as fallback…"
+      fail "prisma migrate deploy failed — fix the error above and re-run setup."
     fi
-    "$DOTENV_BIN" -e "$ENV_FILE" -- "$PRISMA_BIN" migrate dev --name init
-    ok "Migrations applied"
   fi
 
   info "Generating Prisma client…"

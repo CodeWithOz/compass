@@ -28,7 +28,12 @@ export function JournalEntryForm({
   const [isMac, setIsMac] = useState(false);
 
   useEffect(() => {
-    setIsMac(/Mac/i.test(navigator.platform));
+    const platform =
+      (navigator as Navigator & { userAgentData?: { platform?: string } }).userAgentData
+        ?.platform ||
+      navigator.platform ||
+      navigator.userAgent;
+    setIsMac(/Mac/i.test(platform));
   }, []);
 
   useEffect(() => {

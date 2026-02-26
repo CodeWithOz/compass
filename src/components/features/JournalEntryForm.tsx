@@ -25,7 +25,11 @@ export function JournalEntryForm({
   const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
   const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const formRef = useRef<HTMLFormElement | null>(null);
-  const isMac = typeof navigator !== 'undefined' && /Mac/i.test(navigator.platform);
+  const [isMac, setIsMac] = useState(false);
+
+  useEffect(() => {
+    setIsMac(/Mac/i.test(navigator.platform));
+  }, []);
 
   useEffect(() => {
     return () => {

@@ -40,7 +40,9 @@ export function JournalEntryForm({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
-      formRef.current?.requestSubmit();
+      if (!isSubmitting) {
+        formRef.current?.requestSubmit();
+      }
     }
   };
 

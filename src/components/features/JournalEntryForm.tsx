@@ -31,6 +31,13 @@ export function JournalEntryForm({
     };
   }, []);
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      handleSubmit(e as unknown as React.FormEvent);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -79,6 +86,7 @@ export function JournalEntryForm({
       <Textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
+        onKeyDown={handleKeyDown}
         placeholder="What's been happening?"
         rows={12}
         className="text-base leading-relaxed p-6 rounded-xl resize-none border-border/80 focus-visible:ring-ring/30"
@@ -105,6 +113,7 @@ export function JournalEntryForm({
             'Save'
           )}
         </Button>
+        <p className="text-xs text-muted-foreground">Ctrl + Enter to submit</p>
 
         {success && (
           <p className="text-sm text-muted-foreground">

@@ -24,6 +24,8 @@ export function JournalEntryForm({
   const [success, setSuccess] = useState(false);
   const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
   const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const isMac = typeof navigator !== 'undefined' && /Mac/i.test(navigator.platform);
 
   useEffect(() => {
     return () => {
@@ -34,7 +36,7 @@ export function JournalEntryForm({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
-      handleSubmit(e as unknown as React.FormEvent);
+      formRef.current?.requestSubmit();
     }
   };
 
@@ -82,7 +84,7 @@ export function JournalEntryForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
       <Textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
@@ -113,7 +115,7 @@ export function JournalEntryForm({
             'Save'
           )}
         </Button>
-        <p className="text-xs text-muted-foreground">Ctrl + Enter to submit</p>
+        <p className="text-xs text-muted-foreground">{isMac ? 'Cmd' : 'Ctrl'} + Enter to submit</p>
 
         {success && (
           <p className="text-sm text-muted-foreground">

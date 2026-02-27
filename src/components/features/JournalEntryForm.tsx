@@ -24,12 +24,32 @@ export function JournalEntryForm({
   const [success, setSuccess] = useState(false);
   const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
   const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const [isMac, setIsMac] = useState(false);
+
+  useEffect(() => {
+    const platform =
+      (navigator as Navigator & { userAgentData?: { platform?: string } }).userAgentData
+        ?.platform ||
+      navigator.platform ||
+      navigator.userAgent;
+    setIsMac(/Mac/i.test(platform));
+  }, []);
 
   useEffect(() => {
     return () => {
       if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
     };
   }, []);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      if (!isSubmitting) {
+        formRef.current?.requestSubmit();
+      }
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,10 +95,11 @@ export function JournalEntryForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
       <Textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
+        onKeyDown={handleKeyDown}
         placeholder="What's been happening?"
         rows={12}
         className="text-base leading-relaxed p-6 rounded-xl resize-none border-border/80 focus-visible:ring-ring/30"
@@ -105,6 +126,7 @@ export function JournalEntryForm({
             'Save'
           )}
         </Button>
+        <p className="text-xs text-muted-foreground">{isMac ? 'Cmd' : 'Ctrl'} + Enter to submit</p>
 
         {success && (
           <p className="text-sm text-muted-foreground">
